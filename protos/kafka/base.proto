@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package protos.kafka;
+import "google/protobuf/wrappers.proto";
+import "protos/event/schema.proto";
+import "protos/event/base.proto";
+import "protos/event/monitor.proto";
+
+message DiscoveredEntityInstance {
+  google.protobuf.UInt64Value account_id = 1;
+  google.protobuf.UInt64Value entity_instance_id = 2;
+  google.protobuf.UInt64Value entity_id = 3;
+  google.protobuf.StringValue instance = 4;
+}
+
+message ProcessedIngestionEvent {
+  message ProcessedKeyValue {
+    google.protobuf.UInt64Value id = 1;
+    google.protobuf.StringValue key = 2;
+    protos.event.Value value = 3;
+  }
+
+  google.protobuf.UInt64Value account_id = 1;
+  google.protobuf.UInt64Value id = 2;
+  protos.event.EventTypePartial event_type = 3;
+  repeated ProcessedKeyValue kvs = 4;
+  //  Timestamp in milliseconds
+  uint64 timestamp = 5;
+  protos.event.Event.EventSource event_source = 6;
+}
+
+
+message ProcessedMonitorTransaction {
+  google.protobuf.UInt64Value account_id = 1;
+  protos.event.MonitorTransactionPartial monitor_transaction = 2;
+  protos.event.MonitorTransaction.MonitorTransactionStatus monitor_transaction_status = 3;
+  ProcessedIngestionEvent ingestion_event = 4;
+  protos.event.MonitorTransaction.MonitorTransactionEventType monitor_transaction_event_type = 5;
+  google.protobuf.DoubleValue transaction_time = 6;
+}

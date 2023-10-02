@@ -1,0 +1,146 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "protos/event/monitor.proto";
+import "protos/event/entity.proto";
+import "protos/event/literal.proto";
+import "protos/event/query_base.proto";
+import "protos/event/notification.proto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+message MissingEventTrigger {
+  google.protobuf.DoubleValue transaction_time_threshold = 1;
+}
+
+message DelayedEventTrigger {
+  enum Type {
+    UNKNOWN = 0;
+    DELAYED_EVENTS = 1;
+    MISSING_AND_DELAYED_EVENTS = 2;
+    MISSING_EVENTS = 3;
+  }
+  google.protobuf.DoubleValue transaction_time_threshold = 1;
+  google.protobuf.DoubleValue trigger_threshold = 2;
+  google.protobuf.UInt32Value resolution = 3;
+  Type type = 4;
+  google.protobuf.BoolValue skip_unfinished_transactions = 5;
+}
+
+
+message DelayedEventTriggerOptions {
+  google.protobuf.DoubleValue transaction_time_threshold = 1;
+  google.protobuf.DoubleValue trigger_threshold = 2;
+  google.protobuf.UInt32Value resolution = 3;
+  repeated DelayedEventTrigger.Type type = 4;
+}
+
+enum TriggerPriority {
+  UNKNOWN_P = 0;
+  TP_0 = 1;
+  TP_1 = 2;
+  TP_2 = 3;
+  TP_3 = 4;
+  TP_4 = 5;
+}
+
+message TriggerStats {
+  google.protobuf.Timestamp last_triggered_at = 1;
+  google.protobuf.UInt64Value alert_count = 2;
+}
+
+message TriggerDefinition {
+  enum Type {
+    UNKNOWN = 0;
+    MISSING_EVENT = 1;
+    DELAYED_EVENT = 2;
+  }
+  Type type = 1;
+  oneof trigger {
+    MissingEventTrigger missing_event_trigger = 2;
+    DelayedEventTrigger delayed_event_trigger = 3;
+  }
+  repeated BasicTriggerFilter primary_event_filters = 4;
+  repeated BasicTriggerFilter secondary_event_filters = 5;
+}
+
+message Trigger {
+  uint64 id = 1;
+  string name = 2;
+  Monitor monitor = 3;
+  TriggerPriority priority = 4;
+  TriggerDefinition definition = 5;
+  TriggerStats stats = 6;
+  google.protobuf.BoolValue is_active = 7;
+}
+
+message TriggerSummary {
+  uint64 id = 1;
+  string name = 2;
+  TriggerDefinition.Type type = 3;
+  MonitorEventTypeDetails monitor_details = 4;
+}
+
+
+message BasicTriggerFilter {
+  uint64 event_key_id = 1;
+  Op op = 2;
+  Literal literal = 3;
+}
+
+message BasicTriggerFilterOptions {
+  repeated OpDescription op_description = 1;
+}
+
+message MonitorTriggerNotificationDetail {
+  Trigger trigger = 1;
+  repeated NotificationConfig notifications = 2;
+}
+
+message EntityTriggerNotificationDetail {
+  EntityTrigger trigger = 1;
+  repeated NotificationConfig notifications = 2;
+}
+
+
+message UpdateTriggerOp {
+  enum Op {
+    UNKNOWN = 0;
+    UPDATE_TRIGGER_NAME = 1;
+    UPDATE_TRIGGER_STATUS = 2;
+    UPDATE_TRIGGER_PRIORITY = 3;
+    UPDATE_TRIGGER_DEFINITION = 4;
+    UPDATE_TRIGGER_NOTIFICATIONS = 5;
+  }
+
+  message UpdateTriggerName {
+    google.protobuf.StringValue name = 1;
+  }
+
+  message UpdateTriggerStatus {
+    google.protobuf.BoolValue is_active = 1;
+  }
+
+  message UpdateTriggerPriority {
+    TriggerPriority priority = 1;
+  }
+
+  message UpdateTriggerDefinition {
+    TriggerDefinition definition = 1;
+  }
+
+  message UpdateTriggerNotifications {
+    repeated NotificationConfig notifications = 1;
+  }
+
+  Op op = 1;
+  oneof update {
+    UpdateTriggerName update_trigger_name = 2;
+    UpdateTriggerStatus update_trigger_status = 3;
+    UpdateTriggerPriority update_trigger_priority = 4;
+    UpdateTriggerDefinition update_trigger_definition = 5;
+    UpdateTriggerNotifications update_trigger_notifications = 6;
+  }
+}

@@ -1,0 +1,147 @@
+.greyButton {
+  color: #9554ff;
+  background-color: #fff;
+  padding: 4px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  margin-right: 16px;
+  line-height: 21px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  box-shadow: 0px 1px 0px rgba(17, 24, 39, 0.1);
+}
+
+.greyButton:hover {
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+}
+
+.triggerCard {
+  margin: 0px 10px 0px 10px;
+}
+
+.triggerBar {
+  border-radius: 4px 4px 0px 0px;
+  border: 1px solid #e5e7eb;
+}
+
+.arrow-down-icon {
+  margin-left: 20px;
+  transform: rotate(0deg);
+  transition: all 0.3s ease-in-out;
+}
+
+.arrow-down-icon.open {
+  transform: rotate(-180deg);
+}
+
+.alias {
+  background-color: #f3f4f6;
+  border-radius: 12px;
+  padding: 2px 4px 2px 4px;
+  text-align: center;
+  margin-right: 5px;
+  font-size: 12px;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+}
+
+.triggerTitle {
+  font-size: 14px;
+}
+
+.vl {
+  border-left: 1px solid lightgray;
+  height: 32px;
+}
+
+.triggerBarEnd {
+  flex-direction: row;
+  display: flex;
+}
+
+.violet {
+  color: #9553fe;
+}
+
+.toolTip {
+  padding: 1px;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  /* gap: 10px; */
+  align-items: start;
+  padding: 8px 12px;
+  align-items: flex-start;
+}
+
+.container .monitorTransactionTypeFilterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.monitorTransactionTypeFilterSection.additionalFilter {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.container .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+  min-width: 120px;
+}
+
+.columnFilterContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 0px;
+}
+
+.columnsFilterContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attributeTypeContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 0px;
+}
+
+.attributeContainer {
+  background: #f9fafb;
+  border-radius: 4px;
+  height: max-content;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  width: max-content;
+}
+
+.attributesTypeContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.addConditionStyle {
+  cursor: pointer;
+  color: #1f2937;
+}
+
+.addConditionStyle:hover {
+  color: #05080c;
+}

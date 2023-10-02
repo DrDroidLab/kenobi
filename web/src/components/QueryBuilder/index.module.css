@@ -1,0 +1,29 @@
+._container {
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  border-radius: 4px;
+  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+._group__container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+}
+
+._group__options {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+._rules__container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-left: '16px';
+}

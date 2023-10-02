@@ -1,0 +1,122 @@
+syntax = "proto3";
+
+import "protos/event/base.proto";
+import "google/protobuf/wrappers.proto";
+
+package protos.event;
+
+message MonitorStats {
+  google.protobuf.UInt64Value transaction_count = 1;
+  google.protobuf.UInt64Value finished_transaction_count = 2;
+  google.protobuf.DoubleValue transaction_avg_delay = 3;
+  map<string, float> percentiles = 4;
+}
+
+message MonitorPartial {
+  uint64 id = 1;
+  string name = 2;
+}
+
+message Monitor {
+  uint64 id = 1;
+  string name = 2;
+  EventKey primary_event_key = 4;
+  EventKey secondary_event_key = 6;
+  sfixed64 created_at = 7;
+  google.protobuf.BoolValue is_active = 8;
+}
+
+message MonitorDefinition {
+  Monitor monitor = 1;
+  MonitorStats stats = 2;
+}
+
+message MonitorEventTypeDetails {
+  MonitorPartial monitor = 1;
+  EventTypePartial primary_event_type = 2;
+  EventTypePartial secondary_event_type = 3;
+}
+
+message MonitorTransactionGetParams {
+  repeated uint64 transaction_ids = 1;
+  repeated string transactions = 2;
+  MonitorTransaction.MonitorTransactionStatus transaction_status = 3;
+}
+
+message MonitorTransaction {
+  enum MonitorTransactionEventType {
+    UNKNOWN_MT_ET = 0;
+    PRIMARY = 1;
+    SECONDARY = 2;
+  }
+  enum MonitorTransactionStatus {
+    UNKNOWN = 0;
+    PRIMARY_RECEIVED = 1;
+    SECONDARY_RECEIVED = 2;
+  }
+  uint64 id = 1;
+  string transaction = 2;
+  MonitorPartial monitor = 3;
+  sfixed64 created_at = 4;
+  MonitorTransactionStatus status = 5;
+  google.protobuf.BoolValue has_alerts = 6;
+  google.protobuf.DoubleValue transaction_age = 7;
+  google.protobuf.DoubleValue transaction_time = 8;
+}
+
+message MonitorTransactionStats {
+  google.protobuf.DoubleValue transaction_time = 1;
+  google.protobuf.BoolValue primary_event_missing = 2;
+}
+
+message MonitorTransactionDetails {
+  MonitorTransaction monitor_transaction = 1;
+  MonitorTransactionStats stats = 2;
+}
+
+message MonitorTransactionPartial {
+  google.protobuf.UInt64Value id = 1;
+  google.protobuf.StringValue transaction = 2;
+  MonitorPartial monitor = 3;
+}
+
+
+message UpdateMonitorOp {
+  enum Op {
+    UNKNOWN = 0;
+    UPDATE_MONITOR_NAME = 1;
+    UPDATE_MONITOR_PRIMARY_KEY = 2;
+    UPDATE_MONITOR_SECONDARY_KEY = 3;
+    UPDATE_MONITOR_STATUS = 4;
+    UPDATE_MONITOR_IS_GENERATED = 5;
+  }
+
+  message UpdateMonitorName {
+    google.protobuf.StringValue name = 1;
+  }
+
+  message UpdateMonitorPrimaryKey {
+    EventKey primary_event_key = 1;
+  }
+
+  message UpdateMonitorSecondaryKey {
+    EventKey secondary_event_key = 1;
+  }
+
+  message UpdateMonitorStatus {
+    google.protobuf.BoolValue is_active = 1;
+  }
+
+  message UpdateMonitorIsGenerated {
+    google.protobuf.BoolValue is_generated = 1;
+  }
+
+  Op op = 1;
+  oneof update {
+    UpdateMonitorName update_monitor_name = 2;
+    UpdateMonitorPrimaryKey update_monitor_primary_key = 3;
+    UpdateMonitorSecondaryKey update_monitor_secondary_key = 4;
+    UpdateMonitorStatus update_monitor_status = 5;
+    UpdateMonitorIsGenerated update_monitor_is_generated = 6;
+  }
+}

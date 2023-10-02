@@ -1,0 +1,33 @@
+.container {
+  box-sizing: border-box;
+  min-width: calc(400px);
+  min-height: calc(100px);
+  max-height: 600px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 0px 24px 24px 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: scroll;
+}
+
+.heading {
+  font-weight: bold;
+  font-size: 1rem;
+  margin: 1rem 0;
+}
+
+.actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.content {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: baseline;
+}

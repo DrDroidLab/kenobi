@@ -1,0 +1,87 @@
+._container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: start;
+  align-items: flex-start;
+  padding-left: 8px;
+  padding-top: 12px;
+  padding-bottom: 16px;
+  background-color: #f8f8f8;
+  margin: 16px;
+  border: 1px solid #e5e7eb;
+}
+
+._container ._events__section {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding-left: 8px;
+}
+
+._container .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+}
+
+._container ._filter__section {
+  margin-left: 8px;
+  width: calc(100% - 16px);
+}
+
+.clearFilter {
+  border: 1px solid #e5e7eb;
+  padding: 4px 8px;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.clearFilter .clearClose {
+  color: #6b7280;
+  margin-left: 4px;
+}
+
+._submit__section {
+  padding-left: 24px;
+}
+
+.submit {
+  color: #9553fe;
+  border: 1px solid #9553fe;
+  border-radius: 4px;
+  padding: 4px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  margin-right: 4px;
+}
+
+.submit:hover {
+  background: #fff;
+}
+
+.clearFilter:hover {
+  border: 1px solid #b4b7be;
+}
+
+.clearFilter:hover .clearClose {
+  color: #3d4148;
+}
+.header {
+  font-style: normal;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 0px;
+  min-width: 100px;
+  margin-left: 0.5rem;
+}

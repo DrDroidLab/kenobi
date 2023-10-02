@@ -1,0 +1,11 @@
+._rule__container {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  align-items: center;
+  margin-left: 1rem;
+}
+
+._cross__icon {
+  cursor: pointer;
+}

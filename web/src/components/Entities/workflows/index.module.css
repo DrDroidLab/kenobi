@@ -1,0 +1,275 @@
+.canvas {
+  width: '100vw';
+  height: '100vh';
+  background: 'white';
+  border: '1px solid #000';
+  border-radius: '5px';
+}
+
+.eventNode {
+  background: 'grey';
+  border: '1px solid #000';
+  border-radius: '5px';
+}
+
+.leftDiv {
+  width: '30%';
+  height: '100%';
+  background: 'white';
+  float: 'left';
+  border: '1px solid black';
+  border-radius: '5px';
+}
+
+.rightDiv {
+  width: '70%';
+  height: '100%';
+  background: 'white';
+  float: 'right';
+  border: '1px solid black';
+  border-radius: '5px';
+}
+
+.logo {
+  width: '20px';
+  height: '20px';
+}
+
+.submitButton {
+  color: #9553fe;
+  border: 1px solid #9553fe;
+  border-radius: 5px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  width: 100px;
+  margin-right: 5px;
+}
+
+.searchEntity {
+  padding: 10px;
+  padding-bottom: 0px;
+  display: flex;
+}
+
+.dataCount {
+  padding-top: 4px;
+  padding-left: 4px;
+  padding-left: 10px;
+  color: #6b7280;
+  font-size: 12px;
+  font-style: italic;
+}
+
+.container .eventTypeSelectionSection {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  margin-bottom: 10px;
+  min-width: 200px;
+}
+
+.container .eventTypeConditionsSection {
+}
+
+.container .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+  min-width: 100px;
+}
+
+.container .content-centre {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.container {
+  padding-left: 8px;
+  margin: 12px;
+  display: flex;
+  flex-direction: column;
+}
+
+.container .heading {
+  padding-bottom: 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.container .subHeading {
+  font-size: 11px;
+  padding-top: 4px;
+  color: #6b7280;
+}
+
+.addConditionStyle {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.container .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+  min-width: 100px;
+}
+
+.content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+  min-width: 100px;
+}
+
+.addConditionStyle {
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.crossIcon {
+  cursor: pointer;
+}
+
+.reactChart {
+  height: 400px;
+}
+
+.stages {
+  display: flex;
+}
+
+.vl {
+  border-left: 1px solid lightgray;
+}
+
+.tableTitle {
+  border-bottom: 1px solid rgb(88 88 88);
+}
+
+.tableBorder {
+  border: 1px solid rgb(88 88 88);
+}
+
+.tableRow {
+  height: 50px;
+}
+
+.tableCell {
+  border: 1px solid rgb(88 88 88);
+}
+
+.container .workflowContent {
+  display: flex;
+  flex-direction: row;
+  min-height: 600px;
+}
+
+.container .workflowConfig {
+  width: 40%;
+  float: left;
+}
+
+.container .workflowPlot {
+  width: 60%;
+  float: right;
+  margin: 0px 0px 0px 10px;
+}
+
+.container .workflowPlotView {
+  width: 100%;
+  float: right;
+}
+
+.textValueContainer {
+  background: #fff;
+  border: 1px solid #d3d3d3;
+  border-radius: 5px;
+  color: #1f2937;
+  padding: 4px 8px;
+  margin-right: 10px;
+  outline: none;
+  width: -webkit-fill-available;
+  font-size: 12px;
+  height: -webkit-fill-available;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure the overlay appears above other content */
+}
+
+.modal {
+  position: relative;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  width: calc(100% - 100px);
+  height: 90%;
+  padding: 20px;
+  overflow: auto;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.modal-title {
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.modal-supertitle {
+  text-align: center;
+  font-weight: 800;
+  font-size: 2rem;
+}
+
+.modal-content {
+  padding: 10px;
+  overflow-y: scroll;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Two columns */
+  gap: 10px; /* Gap between items */
+}
+
+.grid-item {
+  padding: 10px;
+}

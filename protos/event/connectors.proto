@@ -1,0 +1,81 @@
+syntax = "proto3";
+import "google/protobuf/wrappers.proto";
+
+package protos.event;
+
+
+enum ConnectorType {
+  UNKNOWN = 0;
+  SENTRY = 1;
+  SEGMENT = 2;
+  ELASTIC_SEARCH = 3;
+  AMPLITUDE = 4;
+  AWS_KINESIS = 5;
+  CLOUDWATCH = 6;
+  CLEVERTAP = 7;
+  RUDDERSTACK = 8;
+  MOENGAGE = 9;
+  CRIBL = 10;
+  KAFKA = 11;
+  DATADOG = 12;
+  FILEBEAT = 13;
+  LOGSTASH = 14;
+  FLUENTD = 15;
+  FLUENTBIT = 16;
+  PAGER_DUTY = 17;
+  NEW_RELIC = 18;
+}
+
+
+enum TransformerType {
+  UNKNOWN_TT = 0;
+  SEGMENT_DFAULT_TRANSFORMER = 2;
+  AMPLITUDE_DEFAULT_TRANSFORMER = 3;
+  CLOUDWATCH_JSON_LOG_TRANSFORMER = 4;
+}
+
+
+enum DecoderType {
+  UNKNOWN_DT = 0;
+  AWS_KINESIS_DECODER = 1;
+  AWS_CLOUDWATCH_KINESIS_DECODER = 2;
+}
+
+
+message Connector {
+  google.protobuf.UInt64Value id = 1;
+  ConnectorType type = 2;
+  google.protobuf.BoolValue is_active = 3;
+  google.protobuf.StringValue name = 4;
+  oneof config {
+    SentryConnectorConfig sentry_config = 10;
+  }
+}
+
+message SentryConnectorConfig {
+  google.protobuf.UInt64Value polling_frequency = 1;
+}
+
+message ConnectorKey {
+  enum KeyType {
+    UNKNOWN = 0;
+    SENTRY_API_KEY = 1;
+    DATADOG_APP_KEY = 2;
+    DATADOG_API_KEY = 3;
+    NEWRELIC_API_KEY = 4;
+    NEWRELIC_APP_ID = 5;
+  }
+  google.protobuf.UInt64Value id = 1;
+  KeyType key_type = 2;
+  google.protobuf.StringValue key = 3;
+  google.protobuf.BoolValue is_active = 4;
+}
+
+message PeriodicRunStatus {
+  enum StatusType {
+    UNKNOWN = 0;
+    STARTED = 1;
+    FINISHED = 2;
+    ERROR = 3;
+  }
+}

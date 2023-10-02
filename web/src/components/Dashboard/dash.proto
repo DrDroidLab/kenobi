@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "protos/event/metric.proto";
+import "google/protobuf/struct.proto";
+
+message Coordinate {
+  int row = 1;
+  int column = 2;
+}
+
+message PanelCoordinates {
+  Coordinate start = 1;
+  Coordinate end = 2;
+}
+
+message Chart {
+  message ChartMetricExpression {
+    Context context = 1;
+    repeated MetricExpression metric_expressions = 2;
+  }
+
+  message LabelMapping {
+    string name = 1;
+    string value = 2;
+  }
+
+  message MetricMapping {
+
+    enum Op {
+      UNKNOWN_OP = 0;
+      SUM = 1;
+      MATCH = 2;
+    }
+
+    Op op = 1;
+    string metric_label = 2;
+    repeated string computed_metrics = 3;
+  }
+
+  enum Type {
+    UNKNOWN_CT = 0;
+    BAR = 1;
+    PIE = 2;
+    LINE = 3;
+    TABLE = 4;
+    VALUE = 5;
+  }
+
+  Type type = 1;
+  ChartMetricExpression chart_metric_expression = 2;
+  repeated AttributeIdentifier primary_grouping_labels = 3;
+  repeated AttributeIdentifier labels_sequence = 4;
+  repeated MetricMapping display_metrics_mapping = 5;
+  repeated LabelMapping labels_mapping = 6;
+}
+
+message LinkType {
+  string name = 1;
+  string icon_url = 2;
+}
+
+message PanelLink {
+  LinkType type = 1;
+  string url = 2;
+}
+
+message PanelMetaInfo {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PanelLink links = 4;
+}
+
+message PanelData {
+  enum PanelDataType {
+    UNKNOWN = 0;
+    MARKDOWN = 1;
+    CHART = 2;
+  }
+
+  PanelDataType type = 1;
+  oneof data {
+    string markdown = 2;
+    Chart chart = 3;
+  }
+
+}
+
+message Panel {
+  PanelMetaInfo meta_info = 1;
+  PanelData data = 2;
+  PanelCoordinates coordinates = 3;
+}
+
+message Dashboard {
+  string name = 1;
+  sfixed64 creation_at = 2;
+  repeated Panel panels = 3;
+}
+

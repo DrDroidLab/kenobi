@@ -1,0 +1,76 @@
+{
+  "name": "webvault",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@frigade/react": "^1.32.59",
+    "@mui/icons-material": "^5.11.9",
+    "@mui/lab": "^5.0.0-alpha.120",
+    "@mui/material": "^5.11.10",
+    "@mui/x-data-grid": "^5.17.25",
+    "@segment/snippet": "^4.15.3",
+    "@sentry/react": "^7.53.0",
+    "axios": "^1.3.4",
+    "classnames": "^2.3.2",
+    "dagre": "^0.8.5",
+    "dayjs": "^1.11.7",
+    "echarts-for-react": "^3.0.2",
+    "mixpanel-browser": "^2.45.0",
+    "moment": "^2.29.4",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-code-blocks": "0.0.8",
+    "react-dom": "^18.2.0",
+    "react-google-recaptcha": "^3.1.0",
+    "react-router-dom": "^6.8.1",
+    "react-scripts": "5.0.1",
+    "reactflow": "^11.7.2",
+    "source-map-explorer": "^2.5.3",
+    "styled-components": "^5.3.6",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "prepare": "husky install",
+    "analyze": "source-map-explorer 'build/static/js/*.js'"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.21.0",
+    "@babel/preset-env": "^7.20.2",
+    "@types/jest": "^29.5.1",
+    "@types/node": "^20.2.3",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "babel-loader": "^9.1.2",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.2",
+    "prettier": "2.8.4",
+    "tailwindcss": "^3.2.7",
+    "typescript": "^4.9.5",
+    "webpack": "^5.75.0"
+  }
+}

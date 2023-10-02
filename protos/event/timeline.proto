@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "google/protobuf/wrappers.proto";
+import "protos/event/base.proto";
+import "protos/event/monitor.proto";
+import "protos/event/alert.proto";
+import "protos/event/query_base.proto";
+
+
+message EntityInstanceTimelineRecord {
+  message MonitorTransactionEventTypeMapping {
+    MonitorTransactionPartial monitor_transaction = 1;
+    MonitorTransaction.MonitorTransactionEventType transaction_event_type = 2;
+    google.protobuf.BoolValue has_alerts = 3;
+  }
+
+  sfixed64 timestamp = 1;
+  Event event = 2;
+  repeated MonitorTransactionEventTypeMapping transaction_event_type_mapping = 3;
+  repeated AlertMonitorTransaction alerts = 4;
+}

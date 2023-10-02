@@ -1,0 +1,448 @@
+version: '3.9'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:22.6-alpine
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    expose:
+      - '8123'
+    environment:
+      - "CLICKHOUSE_DB=default"
+      - "CLICKHOUSE_USER=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1"
+      - "CLICKHOUSE_SECURE=0"
+      - "CLICKHOUSE_PORT=9000"
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse:cached
+    networks:
+      - mynetwork
+
+  clickhouse-init:
+    image: clickhouse/clickhouse-server:22.6-alpine
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse:cached
+    depends_on:
+      - clickhouse
+    networks:
+      - mynetwork
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      while ! clickhouse-client --host clickhouse --user default --password password -q \"SHOW databases;\"; do
+          echo waiting for clickhouse up
+          sleep 1
+      done
+      
+      echo create DB
+      clickhouse-client --host clickhouse --user default --password password -q \"CREATE DATABASE IF NOT EXISTS default;\";
+      
+      echo Using DB
+      clickhouse-client --host clickhouse --user default --password password -q \"USE default;\";
+                              
+      echo Create Table
+      clickhouse-client --host clickhouse --user default --password password --multiquery --query=\"
+        SET allow_experimental_object_type=1;
+        CREATE TABLE IF NOT EXISTS events (
+              id UInt64,
+              account_id UInt64,
+              created_at DateTime64(3, 'UTC') default now(),
+              timestamp DateTime64(3, 'UTC') default now(),
+              event_type_id UInt64,
+              event_type_name VARCHAR(256),
+              event_source UInt16,
+              processed_kvs JSON,
+              ingested_event  String
+          )
+          ENGINE = MergeTree()
+          PARTITION BY toDate(timestamp)
+          ORDER BY (account_id, event_type_id, timestamp)
+          PRIMARY KEY (account_id, event_type_id, timestamp)
+          TTL toDateTime(created_at) + INTERVAL 10 DAY DELETE;\";
+      
+      echo Done Table
+      exit 0
+      "
+      
+  db:
+    image: postgres:11
+    environment:
+      - "POSTGRES_DB=db"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  cache:
+    image: 'redis:alpine'
+    ports:
+      - '6379:6379'
+    networks:
+      - mynetwork
+
+  setup_db:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    command: ./setup_db.sh
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "POSTGRES_DB=db"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "POSTGRES_HOST=db"
+      - "POSTGRES_PORT=5432"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - init-kafka
+    networks:
+      - mynetwork
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    container_name: backend_server
+    command: ./start-server.sh
+    ports:
+      - 8080:8080
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "POSTGRES_HOST=db"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "CACHE_BACKEND=redis"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "REPLICA1_POSTGRES_HOST=db"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
+      - "RECAPTCHA_SECRET_KEY=6Le2P6EmAAAAAG-cNzjY6irL0OH02VgyvGKmv5IO"
+      - "KAFKA_PRODUCER_RAW_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_PROCESSED_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_RAW_MONITOR_TRANSACTION_ENABLED=1"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - setup_db
+      - init-kafka
+    networks:
+      - mynetwork
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.1.1
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    networks:
+      - mynetwork
+
+  kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    depends_on:
+      - zookeeper
+    ports:
+      - '9092:9092'
+    expose:
+      - '29092'
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: '1'
+      KAFKA_MIN_INSYNC_REPLICAS: '1'
+    networks:
+      - mynetwork
+
+  init-kafka:
+    image: confluentinc/cp-kafka:6.1.1
+    depends_on:
+      - kafka
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:29092 --list
+
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic raw-events --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic raw-monitor-transactions --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic processed-events --replication-factor 1 --partitions 1
+
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
+    networks:
+      - mynetwork
+
+  raw-events-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    command: ./start-kafka-consumer.sh
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "POSTGRES_HOST=db"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "CACHE_BACKEND=redis"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "REPLICA1_POSTGRES_HOST=db"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
+      - "KAFKA_CONSUMER=raw_events"
+      - "KAFKA_CONSUMER_GROUP=raw_events_consumer_group"
+      - "KAFKA_PRODUCER_RAW_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_PROCESSED_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_RAW_MONITOR_TRANSACTION_ENABLED=1"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - setup_db
+      - kafka
+      - init-kafka
+    networks:
+      - mynetwork
+
+  raw-monitor-transactions-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    command: ./start-kafka-consumer.sh
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "POSTGRES_HOST=db"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "CACHE_BACKEND=redis"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "REPLICA1_POSTGRES_HOST=db"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
+      - "KAFKA_CONSUMER=raw_monitor_transactions"
+      - "KAFKA_CONSUMER_GROUP=raw_monitor_transactions_consumer_group"
+      - "KAFKA_PRODUCER_RAW_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_PROCESSED_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_RAW_MONITOR_TRANSACTION_ENABLED=1"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - setup_db
+      - kafka
+      - init-kafka
+    networks:
+      - mynetwork
+
+  processed-events-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    command: ./start-kafka-consumer.sh
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "POSTGRES_HOST=db"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "CACHE_BACKEND=redis"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "REPLICA1_POSTGRES_HOST=db"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
+      - "KAFKA_PRODUCER_RAW_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_PROCESSED_EVENT_ENABLED=1"
+      - "KAFKA_PRODUCER_RAW_MONITOR_TRANSACTION_ENABLED=1"
+      - "KAFKA_CONSUMER=processed_events_clickhouse"
+      - "KAFKA_CONSUMER_GROUP=processed_events_clickhouse_consumer_group"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - setup_db
+      - kafka
+      - init-kafka
+    networks:
+      - mynetwork
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    command: ./start-celery-beat.sh
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "POSTGRES_HOST=db"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "CACHE_BACKEND=redis"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "REPLICA1_POSTGRES_HOST=db"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - setup_db
+    networks:
+      - mynetwork
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    command: ./start-celery-worker.sh
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "POSTGRES_HOST=db"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "CACHE_BACKEND=redis"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "REPLICA1_POSTGRES_HOST=db"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - setup_db
+    networks:
+      - mynetwork
+
+  account_management_celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: prototype:latest
+    command: ./start-celery-worker.sh
+    environment:
+      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
+      - "DJANGO_DEBUG=True"
+      - "POSTGRES_HOST=db"
+      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
+      - "CELERY_BROKER_URL=redis://cache:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
+      - "REDIS_URL=redis://cache:6379/0"
+      - "CACHE_BACKEND=redis"
+      - "POSTGRES_USER=user"
+      - "POSTGRES_PASSWORD=pass"
+      - "REPLICA1_POSTGRES_HOST=db"
+      - "CLICKHOUSE_HOST=clickhouse"
+      - "CLICKHOUSE_USERNAME=default"
+      - "CLICKHOUSE_PASSWORD=password"
+      - "CLICKHOUSE_PORT=9000"
+      - "CLICKHOUSE_SECURE=0"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
+      - "CELERY_QUEUE=account_management"
+    depends_on:
+      - db
+      - cache
+      - clickhouse
+      - clickhouse-init
+      - setup_db
+    networks:
+      - mynetwork
+
+  webvault:
+    image: webvault:latest
+    ports:
+      - '80:80'
+
+networks:
+  mynetwork:
+
+volumes:
+  postgres_data:
+  clickhouse_data:

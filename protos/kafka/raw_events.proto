@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package protos.kafka;
+import "google/protobuf/wrappers.proto";
+import "protos/event/schema.proto";
+import "protos/event/base.proto";
+
+// Publish on `raw_events` topic
+message RawEventPayloadKey {
+}
+
+message RawEventPayloadValue {
+  google.protobuf.UInt64Value account_id = 1;
+  protos.event.IngestionEvent event = 2;
+  protos.event.Event.EventSource event_source = 3;
+}

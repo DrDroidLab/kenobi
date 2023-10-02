@@ -1,0 +1,944 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "protos/event/base.proto";
+import "protos/event/account.proto";
+import "protos/event/panel.proto";
+import "protos/event/monitor.proto";
+import "protos/event/metric.proto";
+import "protos/event/trigger.proto";
+import "protos/event/alert.proto";
+import "protos/event/options.proto";
+import "protos/event/notification.proto";
+import "protos/event/query_base.proto";
+import "protos/event/engine_options.proto";
+import "protos/event/schema.proto";
+import "protos/event/literal.proto";
+import "protos/event/entity.proto";
+import "protos/event/connectors.proto";
+import "protos/event/search.proto";
+import "protos/event/timeline.proto";
+
+import "google/protobuf/wrappers.proto";
+
+message Meta {
+  TimeRange time_range = 1;
+  Page page = 2;
+  google.protobuf.UInt32Value total_count = 3;
+  google.protobuf.BoolValue show_inactive = 4;
+}
+
+message Message {
+  string title = 1;
+  string description = 2;
+  string traceback = 3;
+}
+
+message ErrorMessage {
+  google.protobuf.BoolValue error = 1;
+  Message message = 2;
+}
+
+/////////////////////  Events api schema  /////////////////////
+message GetEventsRequest {
+  Meta meta = 1;
+  repeated uint64 event_type_ids = 2;
+}
+
+message GetEventsResponse {
+  Meta meta = 1;
+  // add a repeated events message here
+  repeated Event events = 2;
+}
+
+
+/////////////////////  Events Search api schema  /////////////////////
+message GetEventSearchQueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+  google.protobuf.BoolValue save_query = 3;
+}
+
+message GetEventSearchQueryResponse {
+  Meta meta = 1;
+  repeated Event events = 2;
+  repeated KeyValue selected_columns = 3;
+  string query_context_id = 4;
+}
+
+
+/////////////////////  Events Search V2 api schema  /////////////////////
+message GetEventSearchV2QueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+  google.protobuf.BoolValue save_query = 3;
+}
+
+message GetEventSearchV2QueryResponse {
+  Meta meta = 1;
+  repeated Event events = 2;
+  repeated KeyValue selected_columns = 3;
+  string query_context_id = 4;
+}
+
+/////////////////////  Save Event Search api schema  /////////////////////
+message SaveEventSearchQueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+}
+
+message SaveEventSearchQueryResponse {
+  Meta meta = 1;
+  string query_context_id = 4;
+}
+
+
+/////////////////////  Events Export api schema  /////////////////////
+message GetEventExportQueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+}
+
+message GetEventExportQueryResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  string export_context_id = 4;
+}
+
+/////////////////////  Event Types Summary api schema  /////////////////////
+message GetEventTypeSummaryRequest {
+  Meta meta = 1;
+  repeated uint64 event_type_ids = 2;
+  FuzzySearchRequest fuzzy_search_request = 3;
+}
+
+message GetEventTypeSummaryResponse {
+  Meta meta = 1;
+  repeated EventTypeSummary event_type_summary = 2;
+}
+
+/////////////////////  Event Type Search api schema  /////////////////////
+message GetEventKeysSearchRequest {
+  repeated uint64 event_key_ids = 1;
+  repeated string event_key_names = 2;
+}
+
+message GetEventKeysSearchResponse {
+  repeated EventKey event_keys = 1;
+}
+
+/////////////////////  Get Event Key Funnel  /////////////////////
+message GetFunnelRequest {
+  Meta meta = 1;
+  string event_key_name = 2;
+  repeated uint64 event_type_ids = 3;
+  string filter_key_name = 4;
+  string filter_value = 5;
+}
+
+message WorkflowBuilderRequest {
+  Meta meta = 1;
+  string workflow_config = 2;
+}
+
+message WorkflowTimeSeriesResponse {
+
+  message MetricValue {
+    uint64 timestamp = 1;
+    double value = 2;
+  }
+
+  message MetricTimeSeries {
+    string metric_name = 1;
+    string metric_source = 2;
+    repeated MetricValue current_series = 3;
+    repeated MetricValue past_series = 4;
+  }
+
+  Meta meta = 1;
+  string node_name = 2;
+  repeated MetricTimeSeries metric_time_series = 3;
+  string compare_to = 4;
+}
+
+message GetFunnelResponse {
+  Meta meta = 1;
+  FunnelView funnel_view = 2;
+  WorkflowView workflow_view = 3;
+  string message = 4;
+}
+
+/////////////////////  Get Funnel Drop Off  /////////////////////
+message GetFunnelDropOffRequest {
+  Meta meta = 1;
+  repeated uint64 funnel_event_type_ids = 2;
+  string funnel_key_name = 3;
+  uint64 start_event_type_id = 4;
+  uint64 end_event_type_id = 5;
+  string filter_key_name = 6;
+  string filter_value = 7;
+}
+
+message GetFunnelDropOffResponse {
+  Meta meta = 1;
+}
+
+message GetFunnelDropOffDistributionResponse {
+
+  message FunnelEventTypeDistribution {
+    string event_type_name = 1;
+    uint64 count = 2;
+  }
+
+  Meta meta = 1;
+  uint64 previous_node_count = 2;
+  repeated FunnelEventTypeDistribution funnel_event_type_distribution = 3;
+}
+
+/////////////////////  Get Funnel V3 /////////////////////
+message GetFunnelRequestV3 {
+  Meta meta = 1;
+  string filter_value = 2;
+}
+
+message GetFunnelResponseV3 {
+  Meta meta = 1;
+
+  message stage_data {
+    string stage = 1;
+
+    message event_data {
+      string event_name = 1;
+      uint64 event_id = 2;
+      uint64 unique_records_count = 3;
+      uint64 count = 4;
+      repeated event_data child_events = 5;
+    }
+    repeated event_data events = 2;
+  }
+
+  repeated stage_data stages = 2;
+}
+
+/////////////////////  Get Connector Keys /////////////////////
+
+message GetConnectorKeysRequest {
+  ConnectorType connector_type = 1;
+}
+
+message GetConnectorKeysResponse {
+  repeated ConnectorKey connector_keys = 1;
+  string message = 2;
+}
+
+/////////////////////  Save Connector Keys /////////////////////
+
+message SaveConnectorKeysRequest {
+  ConnectorType connector_type = 1;
+  repeated ConnectorKey connector_keys = 2;
+}
+
+message SaveConnectorKeysResponse {
+  string message = 1;
+}
+
+/////////////////////  Event Type Definition Summary api schema  /////////////////////
+message GetEventTypeDefinitionRequest {
+  Meta meta = 1;
+  repeated uint64 event_type_ids = 2;
+}
+
+message GetEventTypeDefinitionResponse {
+  Meta meta = 1;
+  repeated EventTypeDefinition event_type_definitions = 2;
+}
+
+
+/////////////////////  Create Monitor  /////////////////////
+message CreateOrUpdateMonitorRequest {
+  uint64 id = 1;
+  uint64 primary_event_key_id = 2;
+  uint64 secondary_event_key_id = 3;
+  string name = 4;
+  repeated Trigger triggers = 5;
+  repeated NotificationConfig notifications = 6;
+  google.protobuf.BoolValue is_active = 7;
+  google.protobuf.BoolValue is_generated = 8;
+}
+
+message CreateOrUpdateMonitorResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  MonitorPartial monitor = 3;
+}
+
+/////////////////////  Get Monitor Definitions  /////////////////////
+message GetMonitorRequest {
+  Meta meta = 1;
+  repeated uint64 monitor_ids = 2;
+  FuzzySearchRequest fuzzy_search_request = 3;
+}
+
+message GetMonitorResponse {
+  Meta meta = 1;
+  repeated Monitor monitors = 2;
+}
+
+
+/////////////////////  Get Monitor Definitions  /////////////////////
+message GetMonitorDefinitionRequest {
+  Meta meta = 1;
+  repeated uint64 monitor_ids = 2;
+}
+
+message GetMonitorDefinitionResponse {
+  Meta meta = 1;
+  repeated MonitorDefinition monitor_definitions = 2;
+}
+
+///////////////////// Monitor Options  /////////////////////
+message GetMonitorOptionsRequest {
+  Meta meta = 1;
+}
+
+message GetMonitorOptionsResponse {
+  Meta meta = 1;
+  MonitorOptions monitor_options = 2;
+}
+
+
+/////////////////////  Get Monitor Transaction /////////////////////
+message GetMonitorTransactionsRequest {
+  //  (monitor_id and (params or))
+  Meta meta = 1;
+  uint64 monitor_id = 2;
+  MonitorTransactionGetParams params = 3;
+}
+
+message GetMonitorTransactionsResponse {
+  Meta meta = 1;
+  repeated MonitorTransaction monitor_transactions = 2;
+  repeated AlertMonitorTransaction alerts = 3;
+}
+
+/////////////////////  Get Monitor Transaction /////////////////////
+message GetMonitorTransactionEventsRequest {
+  Meta meta = 1;
+  uint64 transaction_id = 2;
+}
+
+message GetMonitorTransactionEventsResponse {
+  Meta meta = 1;
+  repeated Event events = 2;
+}
+
+/////////////////////  Get Monitor Transaction Details /////////////////////
+message GetMonitorTransactionDetailsRequest {
+  Meta meta = 1;
+  uint64 transaction_id = 2;
+}
+
+message GetMonitorTransactionDetailsResponse {
+  Meta meta = 1;
+  repeated MonitorTransactionDetails monitor_transaction_details = 2;
+}
+
+/////////////////////  Get Metric Options  /////////////////////
+message GetMetricExpressionOptionsRequest {
+  Meta meta = 1;
+  Context context = 2;
+  IdLiteral id_literal = 3;
+}
+
+message GetMetricExpressionOptionsResponse {
+  Meta meta = 1;
+  MetricOptions metric_options = 2;
+  MetricExpression default_metric_expression = 3;
+}
+
+/////////////////////  Get Metric  /////////////////////
+message GetMetricRequest {
+  Meta meta = 1;
+  Context context = 2;
+  repeated MetricExpression metric_expressions = 3;
+}
+
+message GetMetricResponse {
+  Meta meta = 1;
+  repeated MetricData metric_data = 2;
+  google.protobuf.BoolValue success = 3;
+  Message message = 4;
+}
+
+/////////////////////  Get PanelsV1  /////////////////////
+message GetPanelsV1Request {
+  Meta meta = 1;
+  string name = 2;
+}
+
+message GetPanelsV1Response {
+  Meta meta = 1;
+  repeated PanelV1 panels = 2;
+}
+
+/////////////////////  Create or Update PanelV1  /////////////////////
+message CreateOrUpdatePanelV1Request {
+  PanelV1 panel = 1;
+}
+
+message CreateOrUpdatePanelV1Response {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Delete PanelV1  /////////////////////
+message DeletePanelV1Request {
+  Meta meta = 1;
+  string name = 2;
+}
+
+message DeletePanelV1Response {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+/////////////////////  Get DashboardsV1  /////////////////////
+message GetDashboardsV1Request {
+  Meta meta = 1;
+  string name = 2;
+}
+
+message GetDashboardsV1Response {
+  Meta meta = 1;
+  repeated DashboardV1 dashboards = 2;
+}
+
+/////////////////////  Create or Update DashboardV1  /////////////////////
+message CreateOrUpdateDashboardV1Request {
+  DashboardV1 dashboard = 1;
+}
+
+message CreateOrUpdateDashboardV1Response {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Delete DashboardV1  /////////////////////
+message DeleteDashboardV1Request {
+  Meta meta = 1;
+  string name = 2;
+}
+
+message DeleteDashboardV1Response {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Get Api Tokens  /////////////////////
+message GetAccountApiTokensRequest {
+  Meta meta = 1;
+}
+
+message GetAccountApiTokensResponse {
+  Meta meta = 1;
+  repeated AccountApiToken account_api_tokens = 2;
+}
+
+/////////////////////  Create Api Tokens  /////////////////////
+message CreateAccountApiTokenRequest {
+}
+
+message CreateAccountApiTokenResponse {
+  google.protobuf.BoolValue success = 1;
+  AccountApiToken account_api_token = 2;
+}
+
+/////////////////////  Delete Api Tokens  /////////////////////
+message DeleteAccountApiTokenRequest {
+  string account_api_token_key = 1;
+}
+
+message DeleteAccountApiTokenResponse {
+  google.protobuf.BoolValue success = 1;
+}
+
+/////////////////////  Get Triggers  /////////////////////
+message GetMonitorTriggerRequest {
+  Meta meta = 1;
+  uint64 monitor_id = 2;
+  repeated uint64 trigger_ids = 3;
+}
+
+message GetMonitorTriggerResponse {
+  Meta meta = 1;
+  repeated MonitorTriggerNotificationDetail monitor_trigger_notification_details = 2;
+}
+
+
+///////////////////// Monitor Trigger Options  /////////////////////
+message GetMonitorTriggerOptionsRequest {
+  Meta meta = 1;
+  uint64 monitor_id = 2;
+}
+
+message GetMonitorTriggerOptionsResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  MonitorPartial monitor = 4;
+  EventTypePartial primary_event_type = 5;
+  EventTypePartial secondary_event_type = 6;
+  MonitorTriggerOptions monitor_trigger_options = 7;
+}
+
+
+/////////////////////  Create Triggers  /////////////////////
+message CreateMonitorTriggerRequest {
+  repeated Trigger triggers = 1;
+  repeated NotificationConfig notifications = 2;
+}
+
+message CreateMonitorTriggerResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Update Triggers  /////////////////////
+message UpdateMonitorTriggerRequest {
+  google.protobuf.UInt64Value trigger_id = 1;
+  repeated UpdateTriggerOp update_trigger_ops = 2;
+}
+
+message UpdateMonitorTriggerResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Get Alerts Summary  /////////////////////
+message GetAlertsSummaryRequest {
+  Meta meta = 1;
+  uint64 monitor_id = 3;
+  repeated uint64 alert_ids = 4;
+}
+
+message GetAlertsSummaryResponse {
+  Meta meta = 1;
+  repeated AlertSummary alerts_summary = 4;
+}
+
+
+/////////////////////  Get Alerts Detail  /////////////////////
+message GetAlertDetailsRequest {
+  Meta meta = 1;
+  uint64 alert_id = 2;
+}
+
+message GetAlertDetailsResponse {
+  Meta meta = 1;
+  AlertDetail alert_detail = 2;
+}
+
+/////////////////////  Get Alerts Monitor Transactions  /////////////////////
+message GetAlertMonitorTransactionsRequest {
+  Meta meta = 1;
+  uint64 alert_id = 2;
+}
+
+message GetAlertMonitorTransactionsResponse {
+  Meta meta = 1;
+  repeated AlertMonitorTransaction monitor_transactions = 2;
+}
+
+/////////////////////  Get User  /////////////////////
+message GetUserRequest {
+}
+
+message GetUserResponse {
+  User user = 1;
+}
+
+/////////////////////  Get Notifications  /////////////////////
+message GetNotificationConfigsRequest {
+  Meta meta = 1;
+  uint64 trigger_id = 2;
+}
+
+message GetNotificationConfigsResponse {
+  Meta meta = 1;
+  repeated NotificationConfig notification_configs = 2;
+}
+
+
+/////////////////////  Create Notification  /////////////////////
+message CreateNotificationConfigRequest {
+  NotificationConfig notification_config = 1;
+}
+
+message CreateNotificationConfigResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Global Search Options api schema  /////////////////////
+message GetGlobalSearchOptionsRequest {
+  Meta meta = 1;
+}
+
+message GetGlobalSearchOptionsResponse {
+  Meta meta = 1;
+  GlobalQueryOptions global_query_options = 2;
+}
+
+
+/////////////////////  Event Search Options api schema  /////////////////////
+message GetEventSearchOptionsRequest {
+  Meta meta = 1;
+  IdLiteral id_literal = 2;
+  IdLiteral saved_query_request_context_id = 3;
+}
+
+message GetEventSearchOptionsResponse {
+  Meta meta = 1;
+  QueryOptions event_query_options = 2;
+  QueryRequest default_query_request = 3;
+}
+
+
+/////////////////////  Monitors Transactions Search Options api schema  /////////////////////
+message GetMonitorsTransactionsSearchOptionsRequest {
+  Meta meta = 1;
+  IdLiteral id_literal = 2;
+  IdLiteral saved_query_request_context_id = 3;
+}
+
+message GetMonitorsTransactionsSearchOptionsResponse {
+  Meta meta = 1;
+  QueryOptions monitor_transaction_query_options = 2;
+  QueryRequest default_query_request = 3;
+}
+
+/////////////////////  Monitors Transactions Search Options V2 api schema  /////////////////////
+message GetMonitorsTransactionsSearchOptionsV2Request {
+  Meta meta = 1;
+  IdLiteral id_literal = 2;
+  IdLiteral saved_query_request_context_id = 3;
+}
+
+message GetMonitorsTransactionsSearchOptionsV2Response {
+  Meta meta = 1;
+  QueryOptionsV2 monitor_transaction_query_options = 2;
+  QueryRequest default_query_request = 3;
+}
+
+/////////////////////  Monitors Transactions Search api schema  /////////////////////
+message GetMonitorsTransactionsSearchQueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+}
+
+message GetMonitorsTransactionsSearchQueryResponse {
+  Meta meta = 1;
+  repeated MonitorTransaction monitor_transactions = 2;
+  MonitorStats search_result_monitor_stats = 3;
+}
+
+/////////////////////  Monitors Transactions Search V2 api schema  /////////////////////
+message GetMonitorsTransactionsSearchV2QueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+  google.protobuf.BoolValue save_query = 3;
+}
+
+message GetMonitorsTransactionsSearchV2QueryResponse {
+  Meta meta = 1;
+  repeated MonitorTransactionDetails monitor_transaction_details = 2;
+  MonitorStats search_result_monitor_stats = 3;
+  string query_context_id = 4;
+}
+
+/////////////////////  Save Monitor Transactions Search api schema  /////////////////////
+message SaveMonitorTransactionsSearchQueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+}
+
+message SaveMonitorTransactionsSearchQueryResponse {
+  Meta meta = 1;
+  string query_context_id = 4;
+}
+
+
+/////////////////////  Monitors Transactions Export api schema  /////////////////////
+message GetMonitorsTransactionsExportQueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+}
+
+message GetMonitorsTransactionsExportQueryResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  string export_context_id = 4;
+}
+
+/////////////////////  Connector Create API schema  /////////////////////
+message CreateConnectorRequest {
+  Connector connector = 1;
+  repeated ConnectorKey connector_keys = 2;
+}
+
+message CreateConnectorResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+
+/////////////////////  Request Connector API schema  /////////////////////
+message RequestConnectorAPIRequest {
+  ConnectorType connector_type = 1;
+}
+
+message RequestConnectorAPIResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Connector Create API schema  /////////////////////
+message CreateTransformerMappingRequest {
+  google.protobuf.UInt64Value account_id = 1;
+  DecoderType decoder_type = 2;
+  TransformerType transformer_type = 3;
+}
+
+message CreateTransformerMappingResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+
+/////////////////////  Entity Options api schema  /////////////////////
+message GetEntityOptionsRequest {
+  Meta meta = 1;
+}
+
+message GetEntityOptionsResponse {
+  Meta meta = 1;
+  EntityOptions entity_options = 2;
+}
+
+/////////////////////  Create Entity api schema  /////////////////////
+message CreateEntityRequest {
+  google.protobuf.StringValue name = 1;
+  google.protobuf.BoolValue is_active = 2;
+  repeated uint64 event_key_ids = 3;
+}
+
+message CreateEntityResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  EntityPartial entity = 3;
+}
+
+/////////////////////  Update Entity api schema  /////////////////////
+message UpdateEntityRequest {
+  google.protobuf.UInt64Value entity_id = 1;
+  repeated UpdateEntityOp update_entity_ops = 2;
+}
+
+message UpdateEntityResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+/////////////////////  Entity triggers options api schema  /////////////////////
+message EntityTriggerOptionsRequest {
+  Meta meta = 1;
+  uint64 entity_id = 2;
+}
+
+message EntityTriggerOptionsResponse {
+  Meta meta = 1;
+  string entity_name = 2;
+  repeated EventKey event_key_options = 3;
+}
+
+/////////////////////  Entity triggers create api schema  /////////////////////
+message EntityTriggerCreateRequest {
+  Meta meta = 1;
+  EntityTrigger trigger = 2;
+  repeated NotificationConfig notifications = 3;
+}
+
+message EntityTriggerCreateResponse {
+  Meta meta = 1;
+  Message message = 2;
+}
+
+message EntityTriggerInactiveRequest {
+  Meta meta = 1;
+  uint64 entity_trigger_id = 2;
+}
+
+message EntityTriggerInactiveResponse {
+  Meta meta = 1;
+  Message message = 2;
+}
+
+message GetEntityTriggersRequest {
+  Meta meta = 1;
+  uint64 entity_id = 2;
+  uint64 entity_trigger_id = 3;
+}
+
+message GetEntityTriggersResponse {
+  Meta meta = 1;
+  repeated EntityTriggerNotificationDetail entity_trigger_notification_details = 2;
+}
+
+/////////////////////  List Entities summary api schema  /////////////////////
+message GetEntitySummaryRequest {
+  Meta meta = 1;
+  repeated uint64 entity_ids = 2;
+  FuzzySearchRequest fuzzy_search_request = 3;
+}
+
+message GetEntitySummaryResponse {
+  Meta meta = 1;
+  repeated EntitySummary entities = 2;
+}
+
+/////////////////////  List Entities detail api schema  /////////////////////
+message GetEntityDetailRequest {
+  Meta meta = 1;
+  google.protobuf.UInt64Value entity_id = 2;
+}
+
+message GetEntityDetailResponse {
+  Meta meta = 1;
+  EntityDetail entity = 2;
+}
+
+/////////////////////  List Entity Instance Summary  /////////////////////
+message GetEntityInstancesSummaryRequest {
+  Meta meta = 1;
+  google.protobuf.UInt64Value entity_id = 2;
+  EntityInstanceGetParams params = 3;
+}
+
+message GetEntityInstancesSummaryResponse {
+  Meta meta = 1;
+  repeated EntityInstanceSummary entity_instances = 2;
+}
+
+/////////////////////  List Entity Instance Detail  /////////////////////
+message GetEntityInstancesDetailRequest {
+  Meta meta = 1;
+  google.protobuf.UInt64Value entity_instance_id = 2;
+}
+
+message GetEntityInstancesDetailResponse {
+  Meta meta = 1;
+  EntityInstanceDetail entity_instance = 2;
+}
+
+/////////////////////  Get Entity Instance timeline api schema  /////////////////////
+message GetEntityInstancesTimelineRequest {
+  Meta meta = 1;
+  google.protobuf.UInt64Value entity_instance_id = 2;
+}
+
+message GetEntityInstancesTimelineResponse {
+  Meta meta = 1;
+  repeated EntityInstanceTimelineRecord entity_instance_timeline_records = 2;
+}
+
+
+/////////////////////  Entity Instances Search Options api schema  /////////////////////
+message GetEntityInstancesSearchOptionsRequest {
+  Meta meta = 1;
+  IdLiteral id_literal = 2;
+}
+
+message GetEntityInstancesSearchOptionsResponse {
+  Meta meta = 1;
+  QueryOptions event_query_options = 2;
+  QueryRequest default_query_request = 3;
+}
+
+
+/////////////////////  Entity Instances Search Options V2 api schema  /////////////////////
+message GetEntityInstancesSearchOptionsV2Request {
+  Meta meta = 1;
+  IdLiteral id_literal = 2;
+}
+
+message GetEntityInstancesSearchOptionsV2Response {
+  Meta meta = 1;
+  QueryOptionsV2 event_query_options = 2;
+  QueryRequest default_query_request = 3;
+}
+
+
+/////////////////////  Entity Instances Search api schema  /////////////////////
+message GetEntityInstanceSearchQueryRequest {
+  Meta meta = 1;
+  QueryRequest query_request = 2;
+}
+
+message GetEntityInstanceSearchQueryResponse {
+  Meta meta = 1;
+  repeated EntityInstanceSummary entity_instances = 2;
+  repeated KeyValue selected_columns = 3;
+}
+
+//////////////////// Entity workflow view api schema /////////////////////////////
+message GetEntityWorkflowSearchQueryRequest {
+  Meta meta = 1;
+  google.protobuf.UInt64Value entity_id = 2;
+  string entity_instance_value = 3;
+}
+
+message GetEntityWorkflowSearchQueryResponse {
+  Meta meta = 1;
+  WorkflowView workflow_view = 2;
+}
+
+
+/////////////////////  Entity Funnel APIs  ////////////////////
+message CreateEntityFunnelRequest {
+  Meta meta = 1;
+  Context context = 2;
+  PanelV1 entity_funnel_panel = 3;
+}
+
+message CreateEntityFunnelResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  EntityPartial funnel_entity = 4;
+}
+
+message GetEntityFunnelRequest {
+  Meta meta = 1;
+  string entity_funnel_name = 2;
+  string filter_key_name = 3;
+  string filter_value = 4;
+  Filter filter = 5;
+}
+
+message GetEntityFunnelResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  WorkflowView workflow_view = 4;
+}

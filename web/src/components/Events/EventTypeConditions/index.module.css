@@ -1,0 +1,29 @@
+.container {
+  background: #f9fafb;
+  border-radius: 4px;
+  height: max-content;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  width: max-content;
+}
+
+.container .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+}
+
+.container .eventAttributesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.addConditionStyle {
+  cursor: pointer;
+}

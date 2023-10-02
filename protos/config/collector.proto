@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package protos.config;
+option go_package = "./protos/config";
+
+import "google/protobuf/wrappers.proto";
+
+message SqsConsumer {
+  google.protobuf.BoolValue enabled = 1;
+  google.protobuf.StringValue queue_url = 2;
+  google.protobuf.Int64Value max_number_of_messages = 3;
+  google.protobuf.Int64Value wait_time_seconds = 4;
+}
+
+message PipelineConfig {
+  HttpServer http_server = 1;
+  Batcher batcher = 2;
+  WrappedExporter exporter = 3;
+  SqsConsumer sqs_consumer = 4;
+}
+
+message NetAddr {
+  google.protobuf.StringValue endpoint = 1;
+  google.protobuf.StringValue transport = 2;
+}
+
+message HttpServer {
+  NetAddr net_addr = 1;
+}
+
+message Batcher {
+  google.protobuf.UInt32Value chan_size = 1;
+  google.protobuf.UInt32Value batch_size = 2;
+  google.protobuf.StringValue timeout = 3;
+}
+
+
+message WrappedExporter {
+  message Wrapper {
+    oneof wrapper {
+      ConsoleExporter console_exporter = 1;
+      HttpExporter http_exporter = 2;
+    }
+  }
+  map<string, Wrapper> wrappers = 1;
+}
+
+message ConsoleExporter {
+  google.protobuf.BoolValue enabled = 1;
+}
+
+message BearerAuth {
+  google.protobuf.StringValue token = 1;
+  google.protobuf.StringValue scheme = 2;
+}
+
+message Authentication {
+  oneof auth {
+    BearerAuth bearer_auth = 1;
+  }
+}
+
+message HttpExporter {
+  google.protobuf.StringValue host = 1;
+  google.protobuf.StringValue endpoint = 2;
+  google.protobuf.UInt32Value chan_size = 3;
+  Authentication authentication = 4;
+  map<string, string> headers = 5;
+}

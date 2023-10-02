@@ -1,0 +1,106 @@
+.button-primary {
+  color: #9554ff;
+  background-color: #efeded;
+  text-align: center !important;
+  height: 50px;
+  pointer-events: none;
+}
+
+.button-error {
+  background-color: red;
+  color: white;
+}
+
+.button-success {
+  background-color: #018749;
+  color: white;
+  text-align: center !important;
+  height: 50px;
+}
+
+.button-available:hover {
+  background-color: rgb(149, 84, 255);
+  color: white;
+  text-align: center !important;
+  height: 50px;
+}
+
+.button-link:hover {
+  background-color: rgb(149, 84, 255);
+  color: white;
+  text-align: center !important;
+  height: 50px;
+}
+
+.button-available {
+  color: #9554ff;
+  background-color: #efededd4;
+  text-align: center !important;
+  height: 50px;
+}
+
+.button-link {
+  color: #9554ff;
+  background-color: #efededd4;
+  text-align: center !important;
+  height: 50px;
+}
+
+.button-requested {
+  background-color: #477d64;
+  color: white;
+  text-align: center !important;
+  height: 50px;
+  pointer-events: none;
+}
+
+.button-main {
+  background-color: #9554ff;
+  color: white;
+}
+
+.checkImage {
+  height: 20px;
+}
+
+.button {
+  width: 100%;
+  padding: 15px;
+  text-align: start;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #efeded;
+  color: grey;
+  text-align: center;
+}
+
+.button-success-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* .button-icon {
+    margin-right: 8px;
+    font-size: 14px;
+    width: 5%;
+    fill: white;
+  } */
+
+.button-label {
+  flex-grow: 1;
+}
+
+.button-loading-container {
+  cursor: wait;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

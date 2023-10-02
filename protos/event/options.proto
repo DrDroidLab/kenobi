@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "protos/event/base.proto";
+import "protos/event/trigger.proto";
+import "protos/event/notification.proto";
+
+message MonitorOptions {
+  repeated EventKey event_key_options = 1;
+}
+
+message TriggerOption {
+  TriggerDefinition.Type trigger_type = 1;
+  oneof config_options {
+    MissingEventTrigger default_missing_event_trigger_config = 2;
+    DelayedEventTriggerOptions default_delayed_event_trigger_config = 3;
+  }
+  BasicTriggerFilterOptions basic_trigger_filter_options = 4;
+}
+
+message NotificationOption {
+  NotificationConfig.Channel channel = 1;
+  oneof config_options {
+    SlackConfiguration slack_configuration = 2;
+    EmailConfiguration email_configuration = 3;
+  }
+}
+
+message MonitorTriggerOptions {
+  repeated TriggerOption default_trigger_options = 1;
+  repeated NotificationOption notification_options = 2;
+  repeated EventKey event_key_filter_options = 3;
+}
+
+message EntityOptions {
+  repeated EventKey event_key_options = 1;
+}

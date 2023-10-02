@@ -1,0 +1,102 @@
+.row .pageHead {
+  margin: 20px 0;
+}
+.row .pageHead h1 {
+  font-size: 24px;
+  font-weight: 500;
+  border-bottom: solid 1px #eee;
+  padding-bottom: 10px;
+}
+.row .pageHead h1 small {
+  color: #333;
+  font-weight: 600;
+  font-size: 24px;
+}
+.row .pageHead h1 button {
+  float: right;
+  margin-top: -5px;
+}
+.metrics-filter-wrap {
+  border: solid 1px #eee;
+  background: #f7f7f7;
+  padding: 15px 10px;
+  border-radius: 8px;
+  margin: 0 !important;
+  margin-bottom: 30px !important;
+}
+
+.metrics-filter-wrap .inputWrap {
+  align-self: end;
+}
+
+.metrics-filter-wrap .inputWrap button,
+.save-button-wrap button {
+  font-size: 14px;
+  padding: 10px 30px;
+  line-height: 20px;
+}
+
+.graph-wrap .echarts-for-react,
+.graph-wrap-list > div {
+  border: solid 1px #eee;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.row .save-button-wrap {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.graph-wrap-list div .card-head {
+  background-color: #eee;
+  margin: -20px -20px 20px;
+  border-top-right-radius: 8px;
+  border-top-left-radius: 8px;
+  padding: 10px;
+}
+.graph-wrap-list div .card-head div {
+  display: inline-block;
+}
+.graph-wrap-list div .card-head div:first-child h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.graph-wrap-list div .card-head div:last-child {
+  float: right;
+}
+.graph-wrap-list div .card-head div:last-child button {
+  font-size: 13px;
+  padding: 5px 10px;
+  font-weight: 500;
+}
+.metrics-filter-wrap .metrics-filter-row {
+  margin-bottom: 15px;
+  border-bottom: solid 1px #ebebeb;
+  padding-bottom: 15px;
+}
+.metrics-filter-wrap .metrics-filter-row .filter-heading {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+.metrics-filter-wrap .metrics-filter-row:last-child {
+  border: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.metrics-filter-wrap .metrics-filter-row:last-child .inputWrap {
+  text-align: center;
+}
+
+.applyFilterMessage {
+  text-align: center;
+  background: #f9f9f9;
+  height: 400px;
+  padding-top: 200px;
+  font-size: 18px;
+  border-radius: 8px;
+}

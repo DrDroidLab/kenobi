@@ -1,0 +1,80 @@
+{
+  "compare_to": "1d",
+  "nodes": [
+    {
+      "name": "ingestion API",
+      "metrics": [
+        {
+          "name": "Hits",
+          "source": "Datadog",
+          "expr": "sum:trace.django.request.hits{env:prod,service:ingest}.as_count()"
+        },
+        {
+          "name": "Errors",
+          "source": "Datadog",
+          "expr": "sum:trace.django.request.errors{env:prod,service:ingest}.as_count()"
+        },
+        {
+          "name": "Avg Latency",
+          "source": "Datadog",
+          "expr": "avg:trace.django.request{env:prod,service:ingest}"
+        },
+        {
+          "name": "Kinesis Hits",
+          "source": "Datadog",
+          "expr": "sum:trace.django.request.hits{env:prod,resource:ac997c698a24cc85,service:ingest}"
+        },
+        {
+          "name": "Kinesis p99 Latency",
+          "source": "Datadog",
+          "expr": "p99:trace.django.request{env:prod,resource:ac997c698a24cc85,service:ingest}"
+        }
+      ]
+    },
+    {
+      "name": "Raw Packets Accepted",
+      "metrics": [
+        {
+          "name": "Hits",
+          "source": "Datadog",
+          "expr": "sum:trace.kafka_consumer.raw_events.consume_msgs.hits{env:prod,service:raw-events-consumer-ingest}.as_count()"
+        },
+        {
+          "name": "Avg Latency",
+          "source": "Datadog",
+          "expr": "avg:trace.kafka_consumer.raw_events.consume_msgs{env:prod,service:raw-events-consumer-ingest}"
+        },
+        {
+          "name": "Error Rate",
+          "source": "Datadog",
+          "expr": "sum:trace.kafka_consumer.raw_events.errors{env:prod,service:raw-events-consumer-ingest}.as_count()"
+        }
+      ]
+    },
+    {
+      "name": "Packets Processed by Clickhouse",
+      "metrics": [
+        {
+          "name": "Hits",
+          "source": "Datadog",
+          "expr": "sum:trace.kafka_consumer.processed_events.consume_msgs.hits{env:prod,service:processed-events-clickhouse-consumer-ingest}.as_count()"
+        }
+      ]
+    },
+    {
+      "name": "Packets Processed_by_PostGres",
+      "metrics": [
+        {
+          "name": "Error Count",
+          "source": "Datadog",
+          "expr": "sum:trace.postgres.query.errors{env:prod,service:postgres}.as_count()"
+        },
+        {
+          "name": "Hits",
+          "source": "Datadog",
+          "expr": "sum:trace.postgres.query.hits{env:prod,service:postgres}.as_count()"
+        }
+      ]
+    }
+  ]
+}

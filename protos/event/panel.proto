@@ -1,0 +1,163 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
+
+import "protos/event/metric.proto";
+import "protos/event/base.proto";
+import "protos/event/query_base.proto";
+import "protos/event/entity.proto";
+import "protos/event/monitor.proto";
+
+
+message Coordinate {
+  google.protobuf.Int64Value row = 1;
+  google.protobuf.Int64Value column = 2;
+}
+
+message PanelCoordinates {
+  Coordinate start = 1;
+  Coordinate end = 2;
+}
+
+message FunnelPanel {
+  string event_key_name = 1;
+  repeated uint64 event_type_ids = 2;
+  string filter_key_name = 3;
+  string filter_value = 4;
+}
+
+message WorkflowPanel {
+  string workflow_config = 1;
+}
+
+message Chart {
+  message ChartMetricExpression {
+    Context context = 1;
+    repeated MetricExpression metric_expressions = 2;
+  }
+
+  message LabelMapping {
+    string name = 1;
+    string value = 2;
+  }
+
+  message MetricMapping {
+
+    enum Op {
+      UNKNOWN_OP = 0;
+      SUM = 1;
+      MATCH = 2;
+    }
+
+    Op op = 1;
+    string metric_label = 2;
+    repeated string computed_metrics = 3;
+  }
+
+  enum Type {
+    UNKNOWN_CT = 0;
+    BAR = 1;
+    PIE = 2;
+    LINE = 3;
+    TABLE = 4;
+    VALUE = 5;
+    SIMPLE_TABLE = 6;
+    COMPLEX_TABLE = 7;
+    AREA = 8;
+  }
+
+  Type type = 1;
+  ChartMetricExpression chart_metric_expression = 2;
+  repeated AttributeIdentifier primary_grouping_labels = 3;
+  repeated AttributeIdentifier labels_sequence = 4;
+  repeated MetricMapping display_metrics_mapping = 5;
+  repeated LabelMapping labels_mapping = 6;
+}
+
+message ComplexTableData {
+
+    message ComputedMetric {
+        string metric_label = 1;
+        string metric_value = 2;
+        string filter_query = 3;
+    }
+
+    message ComplexTableDataElement {
+       string element_value = 1;
+       string fill_color = 2;
+       repeated ComputedMetric computed_metrics = 3;
+       string element_type = 4;
+    }
+
+    message ComplexTableDataColumn {
+        string label = 1;
+        string key = 2;
+        ComplexTableDataElement element = 3;
+    }
+
+    message ComplexTableDataRow {
+        repeated ComplexTableDataColumn columns = 1;
+    }
+
+    string metric_label = 1;
+    repeated ComplexTableDataRow rows = 2;
+}
+
+message LinkType {
+  string name = 1;
+  string icon_url = 2;
+}
+
+message PanelLink {
+  LinkType type = 1;
+  string url = 2;
+}
+
+message PanelMetaInfo {
+  uint64 id = 1;
+  string name = 2;
+  string description = 3;
+  repeated PanelLink links = 4;
+}
+
+message PanelData {
+  enum PanelDataType {
+    UNKNOWN = 0;
+    MARKDOWN = 1;
+    CHART = 2;
+    SEARCH = 3;
+    FUNNEL = 4;
+    WORKFLOW = 5;
+  }
+
+  PanelDataType type = 1;
+  oneof data {
+    string markdown = 2;
+    Chart chart = 3;
+    FunnelPanel funnel = 4;
+    WorkflowPanel workflow = 5;
+  }
+
+}
+
+message PanelV1 {
+  PanelMetaInfo meta_info = 1;
+  PanelData data = 2;
+  PanelCoordinates coordinates = 3;
+}
+
+message DashboardV1 {
+  string name = 1;
+  sfixed64 created_at = 2;
+  repeated PanelV1 panels = 3;
+  uint64 start_hour = 4;
+}
+
+message EntityFunnelPanel {
+  EntityPartial entity_panel = 1;
+  repeated MonitorPartial nodes = 2;
+  Filter filter = 3;
+}

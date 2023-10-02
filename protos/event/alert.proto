@@ -1,0 +1,55 @@
+syntax = "proto3";
+import "protos/event/trigger.proto";
+import "protos/event/monitor.proto";
+import "protos/event/entity.proto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+
+package protos.event;
+
+message AlertSummary {
+  uint64 id = 1;
+  TriggerSummary trigger = 2;
+  EntityTrigger entity_trigger = 3;
+  sfixed64 triggered_at = 4;
+}
+
+message AlertStats {
+  google.protobuf.UInt64Value total_transaction_count = 1;
+  google.protobuf.UInt64Value missed_transaction_count = 2;
+  google.protobuf.UInt64Value delayed_transaction_count = 3;
+  google.protobuf.DoubleValue median_delay = 4;
+  google.protobuf.StringValue event_name = 5;
+  google.protobuf.StringValue event_key_name = 6;
+  google.protobuf.UInt64Value event_timestamp = 7;
+  google.protobuf.StringValue entity_instance_value = 8;
+}
+
+message AlertDetail {
+  uint64 id = 1;
+  Trigger trigger = 2;
+  EntityTrigger entity_trigger = 3;
+  google.protobuf.Timestamp triggered_at = 4;
+  AlertStats stats = 5;
+}
+
+message DelayedMonitorTransactionStats {
+  google.protobuf.DoubleValue delay_duration = 1;
+}
+
+message AlertMonitorTransaction {
+  enum Type {
+    UNKNOWN = 0;
+    MISSED_TRANSACTION = 1;
+    DELAYED_TRANSACTION = 2;
+  }
+  Type type = 1;
+  MonitorTransaction monitor_transaction = 2;
+  uint64 alert_id = 3;
+  oneof stats {
+    DelayedMonitorTransactionStats delayed_monitor_transaction_stats = 4;
+  }
+  string trigger_name = 5;
+}

@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package protos.event;
+import "protos/event/base.proto";
+import "protos/event/query_base.proto";
+import "protos/event/literal.proto";
+import "google/protobuf/wrappers.proto";
+
+
+
+enum AggregationFunction {
+  UNKNOWN_MF = 0;
+  COUNT = 1;
+  SUM = 2;
+  AVG = 3;
+  MIN = 4;
+  MAX = 5;
+  STD_DEV = 6;
+  VARIANCE = 7;
+  COUNT_DISTINCT = 8;
+}
+
+message MetricSelector {
+  AggregationFunction function = 1;
+  Expression expression = 2;
+  string alias = 3;
+}
+
+message MetricExpression {
+  Filter filter = 1;
+  repeated Expression group_by = 2;
+  repeated MetricSelector selectors = 3;
+  //  TODO: Need to add a timestamp column here
+  google.protobuf.BoolValue is_timeseries = 4;
+  google.protobuf.UInt64Value resolution = 5;
+}
+
+
+message LabelMetadata {
+  //  This will be made up of all the columns being used in group by
+  Expression expression = 1;
+  string alias = 2;
+}
+
+message TsDataPoint {
+  uint64 timestamp = 1;
+  Literal value = 2;
+}
+
+message Data {
+  repeated TsDataPoint timeseries_data = 2;
+  Literal value = 3;
+}
+
+message Label {
+  Literal value = 1;
+  string display_value = 2;
+}
+
+message LabeledData {
+  string label_group = 3;
+  repeated Label labels = 1;
+  map<string, Data> alias_data_map = 2;
+}
+
+message MetricDataMetadata {
+  repeated LabelMetadata labels_metadata = 1;
+  google.protobuf.BoolValue is_timeseries = 3;
+  google.protobuf.UInt64Value resolution = 4;
+  TimeRange time_range = 5;
+  map<string, MetricSelector> metric_alias_selector_map = 6;
+}
+
+message MetricData {
+  MetricDataMetadata metadata = 1;
+  repeated LabeledData labeled_data = 2;
+}

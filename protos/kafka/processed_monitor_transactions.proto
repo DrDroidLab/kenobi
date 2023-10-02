@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package protos.kafka;
+import "google/protobuf/wrappers.proto";
+import "protos/kafka/base.proto";
+
+
+// Publish on `processed_events` topic
+message ProcessedMonitorTransactionPayloadKey {
+}
+
+message ProcessedMonitorTransactionPayloadValue {
+  google.protobuf.UInt64Value account_id = 1;
+  ProcessedMonitorTransaction processed_monitor_transaction = 2;
+}

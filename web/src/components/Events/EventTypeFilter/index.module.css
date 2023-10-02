@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: start;
+  padding: 8px 12px;
+  align-items: flex-start;
+}
+
+.container .eventTypeSelectionSection {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.container .eventTypeConditionsSection {
+}
+
+.container .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+}

@@ -1,0 +1,23 @@
+.intercom-text {
+  font-weight: 200;
+  padding: 20px;
+  padding-top: 0px;
+}
+
+.meeting-link {
+  color: #9553fe;
+}
+
+.tabContainer {
+  border: 1px solid rgb(200, 192, 192);
+  margin: 20px;
+  border-radius: 5px;
+  line-height: 10px;
+  text-align: justify;
+  margin-top: 0;
+  width: 350px;
+}
+
+.searchBox {
+  margin: 20px;
+}

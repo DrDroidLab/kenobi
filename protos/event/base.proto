@@ -1,0 +1,91 @@
+syntax = "proto3";
+import "protos/event/schema.proto";
+import "google/protobuf/wrappers.proto";
+
+package protos.event;
+
+message TimeRange {
+  uint64 time_geq = 1;
+  uint64 time_lt = 2;
+}
+
+message Page {
+  google.protobuf.UInt32Value limit = 1;
+  google.protobuf.UInt32Value offset = 2;
+}
+
+message EventKey {
+  enum KeyType {
+    UNKNOWN = 0;
+    STRING = 1;
+    LONG = 2;
+    DOUBLE = 3;
+    BOOLEAN = 4;
+    BYTE = 5;
+    ARRAY = 6;
+    OBJECT = 7;
+  }
+  uint64 id = 1;
+  string key = 2;
+  KeyType key_type = 3;
+  EventTypePartial event_type = 4;
+}
+
+message EventType {
+  uint64 id = 1;
+  string name = 2;
+  repeated EventKey keys = 3;
+  repeated Event.EventSource event_sources = 4;
+}
+
+message EventTypeStats {
+  google.protobuf.UInt64Value keys_count = 1;
+  google.protobuf.UInt64Value event_count = 2;
+  google.protobuf.UInt64Value monitor_count = 3;
+}
+
+message EventTypePartial {
+  uint64 id = 1;
+  string name = 2;
+}
+
+message EventTypeSummary {
+  EventTypePartial event_type = 1;
+  EventTypeStats stats = 2;
+}
+
+message EventTypeDefinition {
+  EventType event_type = 1;
+  EventTypeStats stats = 2;
+}
+
+message Event {
+  enum EventSource {
+    UNKNOWN = 0;
+    SAMPLE = 1;
+    API = 2;
+    SDK = 3;
+    SEGMENT = 4;
+    AMPLITUDE = 5;
+    SNS = 6;
+    CLOUDWATCH = 7;
+  }
+  uint64 id = 1;
+  EventTypePartial event_type = 2;
+  repeated KeyValue kvs = 3;
+  sfixed64 timestamp = 4;
+  EventSource event_source = 5;
+}
+
+enum Context {
+  UNKNOWN_C = 0;
+  EVENT = 1;
+  MONITOR_TRANSACTION = 2;
+  ENTITY_INSTANCE = 3;
+
+  EVENT_TYPE = 4;
+  MONITOR = 5;
+  ENTITY = 6;
+
+  EVENTS_CLICKHOUSE = 7;
+}

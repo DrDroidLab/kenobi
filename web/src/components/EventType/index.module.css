@@ -1,0 +1,64 @@
+.keyCard {
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: 8px;
+  font-size: 14px;
+  box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 75ms cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.keyCard:hover {
+  border: 1px solid #9ca3af;
+}
+
+.alias {
+  /* background-color: #ccc;
+  border-radius: 5px;
+  padding: 3px 3px 3px 5px;
+  text-align: center;
+  margin-right: 5px; */
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  /* gray/200 */
+  background: #e5e7eb;
+  border-radius: 4px;
+  text-align: center;
+  margin-right: 8px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.keyName {
+  text-align: center;
+  margin-left: 8px;
+  color: #4b5563;
+}
+
+.sourceChip {
+  margin-left: 5px;
+}
+
+.container {
+  background-color: #fff;
+  margin: 5px;
+}
+
+.container .heading {
+  padding-bottom: 12px;
+  gap: 10px;
+  background-color: #f8fafc;
+}
+
+.eventList {
+  width: 250px;
+  display: flex;
+  flex-direction: row;
+}
+
+.crossIcon {
+  margin: 2px;
+  cursor: pointer;
+}

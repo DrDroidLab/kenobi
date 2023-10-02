@@ -1,0 +1,122 @@
+.monitorStats {
+  background-color: white;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-top: 12px 0px 20px 20px;
+  border-radius: 5px;
+}
+.title {
+  margin: 12px;
+}
+
+.statsContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: left;
+  justify-content: left;
+}
+
+.vl {
+  border-left: 1px solid lightgray;
+  height: 42px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  margin: 8px 10px 8px 10px;
+}
+
+.statName {
+  margin-left: 5px;
+  color: grey;
+  opacity: 0.8;
+  text-align: left;
+  font-size: 13px;
+}
+
+.statValue {
+  margin-left: 5px;
+  opacity: 0.8;
+  text-align: left;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.addConditionStyle {
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.chip {
+  margin: 0 5px 5px 0;
+  padding: 5px;
+  border-radius: 15px;
+  background-color: hsl(240deg 7% 62% / 35%);
+}
+
+.crossIcon {
+  margin: 2px;
+}
+
+.arrow-down-icon {
+  margin-left: 20px;
+  transform: rotate(0deg);
+  transition: all 0.3s ease-in-out;
+}
+
+.arrow-down-icon.open {
+  transform: rotate(-180deg);
+}
+
+.tableTitleCentre {
+  color: black;
+  font-weight: bold;
+  text-align: center;
+}
+
+.tableData {
+  text-align: left;
+  border-bottom: none;
+}
+
+.overlayContainer {
+  box-sizing: border-box;
+  min-width: calc(400px);
+  min-height: calc(100px);
+  max-height: 500px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  padding: 0px 24px 24px 24px;
+  position: relative;
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  position: sticky;
+  top: 0px;
+  background-color: #ffffff;
+  height: 60px;
+  align-items: center;
+}
+.actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.mr-3 {
+  margin-right: 12px;
+}
+
+.contentContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  align-items: baseline;
+}

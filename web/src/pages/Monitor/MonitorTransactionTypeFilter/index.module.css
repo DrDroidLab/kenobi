@@ -1,0 +1,77 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  /* gap: 10px; */
+  align-items: start;
+  padding: 8px 12px;
+  align-items: flex-start;
+}
+
+.container .monitorTransactionTypeFilterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.monitorTransactionTypeFilterSection.additionalFilter {
+  background-color: #f9fafb;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+
+.container .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+  min-width: 120px;
+}
+
+.columnFilterContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 0px;
+}
+
+.columnsFilterContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.attributeTypeContainer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 0px;
+}
+
+.attributeContainer {
+  background: #f9fafb;
+  border-radius: 4px;
+  height: max-content;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  width: max-content;
+}
+
+.attributesTypeContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.addConditionStyle {
+  cursor: pointer;
+  color: #1f2937;
+}
+
+.addConditionStyle:hover {
+  color: #05080c;
+}

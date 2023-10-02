@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "protos/event/base.proto";
+
+message FuzzySearchRequest {
+  Context context = 1;
+  string pattern = 2;
+}

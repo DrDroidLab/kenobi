@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package protos.kafka;
+import "google/protobuf/wrappers.proto";
+import "protos/kafka/base.proto";
+import "protos/event/monitor.proto";
+
+// Publish on `raw_monitor_transactions` topic
+message RawMonitorTransactionPayloadKey {
+  google.protobuf.UInt64Value account_id = 1;
+  google.protobuf.UInt64Value monitor_id = 2;
+  google.protobuf.StringValue transaction = 3;
+}
+
+message RawMonitorTransactionPayloadValue {
+  google.protobuf.UInt64Value account_id = 1;
+  google.protobuf.UInt64Value monitor_id = 2;
+  google.protobuf.StringValue transaction = 3;
+  ProcessedIngestionEvent event = 4;
+  protos.event.MonitorTransaction.MonitorTransactionEventType transaction_event_type = 5;
+  repeated DiscoveredEntityInstance discovered_entity_instances = 6;
+}

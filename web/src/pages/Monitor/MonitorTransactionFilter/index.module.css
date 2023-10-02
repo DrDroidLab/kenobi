@@ -1,0 +1,52 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: start;
+  align-items: flex-start;
+  padding: 12px 8px;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+}
+
+.wrapper .mtSection {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 12px 12px 0 12px;
+}
+
+.wrapper .content {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 150%;
+  color: #6b7280;
+  padding-top: 4px;
+}
+
+.clearFilter {
+  border: 1px solid #e5e7eb;
+  padding: 4px 8px;
+  border-radius: 4px;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.clearFilter .clearClose {
+  color: #6b7280;
+  margin-left: 4px;
+}
+
+.clearFilter:hover {
+  border: 1px solid #b4b7be;
+}
+
+.clearFilter:hover .clearClose {
+  color: #3d4148;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package protos.kafka;
+import "google/protobuf/wrappers.proto";
+import "protos/kafka/base.proto";
+
+// Publish on `event_entity` topic
+message EventEntityPayloadKey {
+}
+
+message EventEntityPayloadValue {
+  google.protobuf.UInt64Value account_id = 1;
+  ProcessedIngestionEvent event = 2;
+  repeated DiscoveredEntityInstance discovered_entity_instances = 3;
+}

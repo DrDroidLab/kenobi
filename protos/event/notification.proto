@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package protos.event;
+
+message SlackConfiguration {
+  string webhook_url = 1;
+}
+
+message EmailConfiguration {
+  string recipient_email_id = 1;
+}
+
+message NotificationConfig {
+  enum Channel {
+    UNKNOWN = 0;
+    SLACK = 1;
+    EMAIL = 2;
+  }
+  Channel channel = 1;
+  oneof config {
+    SlackConfiguration slack_configuration = 2;
+    EmailConfiguration email_configuration = 3;
+  }
+}

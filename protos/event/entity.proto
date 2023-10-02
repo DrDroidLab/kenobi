@@ -1,0 +1,241 @@
+syntax = "proto3";
+
+package protos.event;
+
+import "google/protobuf/wrappers.proto";
+import "protos/event/base.proto";
+import "protos/event/monitor.proto";
+import "protos/event/query_base.proto";
+import "protos/event/notification.proto";
+
+message EntityEventKeyMapping {
+  google.protobuf.UInt64Value id = 1;
+  EventKey event_key = 3;
+  google.protobuf.BoolValue is_active = 4;
+}
+
+message EntityTriggerDefinition {
+
+  enum TriggerType {
+    UNKNOWN_TYPE = 0;
+    PER_EVENT = 1;
+    AGGREGATED_EVENTS = 2;
+  }
+
+  enum EntityTriggerRuleType {
+    UNKNOWN = 0;
+    LAST_EVENT = 1;
+    EVENT_COUNT = 2;
+    EVENT_OCCURS = 3;
+  }
+
+  message TriggerRuleConfig {
+    uint64 event_id = 1;
+    uint64 time_interval = 2;
+    uint64 threshold_count = 3;
+    string event_name = 4;
+  }
+
+  EntityTriggerRuleType rule_type = 1;
+  TriggerType type = 2;
+  TriggerRuleConfig trigger_rule_config = 3;
+
+}
+
+message EntityTrigger {
+  uint64 id = 1;
+  uint64 entity_id = 2;
+  string entity_name = 3;
+  string name = 4;
+  EntityTriggerDefinition definition = 5;
+  Filter filter = 6;
+  repeated NotificationConfig notifications = 7;
+  google.protobuf.BoolValue is_active = 8;
+}
+
+message Entity {
+  enum Type {
+    UNKNOWN = 0;
+    DEFAULT = 1;
+    FUNNEL = 2;
+  }
+  google.protobuf.UInt64Value id = 1;
+  google.protobuf.StringValue name = 2;
+  google.protobuf.BoolValue is_active = 4;
+  sfixed64 created_at = 5;
+  sfixed64 updated_at = 6;
+  Type type = 7;
+}
+
+message EntityPartial {
+  google.protobuf.UInt64Value id = 1;
+  google.protobuf.StringValue name = 2;
+}
+
+message EntityStats {
+  google.protobuf.UInt64Value new_instance_count = 1;
+  google.protobuf.UInt64Value active_instance_count = 2;
+  google.protobuf.UInt64Value event_count = 3;
+  google.protobuf.UInt64Value transaction_count = 4;
+}
+
+message EntitySummary {
+  Entity entity = 1;
+  EntityStats stats = 2;
+}
+
+message EntityDetail {
+  Entity entity = 1;
+  repeated EntityEventKeyMapping entity_event_key_mappings = 2;
+  EntityStats stats = 3;
+}
+
+message EntityInstance {
+  google.protobuf.UInt64Value id = 1;
+  google.protobuf.StringValue instance = 2;
+  EntityPartial entity = 3;
+  sfixed64 created_at = 4;
+}
+
+message EntityInstancePartial {
+  google.protobuf.UInt64Value id = 1;
+  google.protobuf.StringValue instance = 2;
+}
+
+message EntityInstanceStats {
+  google.protobuf.UInt64Value event_count = 1;
+  google.protobuf.UInt64Value transaction_count = 2;
+  google.protobuf.BoolValue has_alerts = 3;
+}
+
+message EntityInstanceSummary {
+  EntityInstancePartial entity_instance = 1;
+  EntityInstanceStats stats = 2;
+}
+
+message EntityInstanceDetail {
+  EntityInstance entity_instance = 1;
+  EntityInstanceStats stats = 2;
+}
+
+message EntityInstanceGetParams {
+  repeated string instances = 1;
+}
+
+message UpdateEntityOp {
+  enum Op {
+    UNKNOWN = 0;
+    UPDATE_ENTITY_NAME = 1;
+    UPDATE_ENTITY_STATUS = 2;
+    UPDATE_ENTITY_EVENT_KEY_MAPPING_STATUS = 3;
+    ADD_ENTITY_EVENT_KEY_MAPPINGS = 4;
+    REMOVE_ENTITY_EVENT_KEY_MAPPINGS = 5;
+  }
+
+  message UpdateEntityName {
+    google.protobuf.StringValue name = 1;
+  }
+
+  message UpdateEntityStatus {
+    google.protobuf.BoolValue is_active = 1;
+  }
+
+  message UpdateEntityEventKeyMappingStatus {
+    google.protobuf.UInt64Value entity_event_key_mapping_id = 1;
+    google.protobuf.BoolValue is_active = 2;
+  }
+
+  message AddEntityEventKeyMappings {
+    repeated uint64 event_key_ids = 1;
+  }
+
+  message RemoveEntityEventKeyMappings {
+    repeated uint64 entity_event_key_mapping_ids = 1;
+  }
+
+  Op op = 1;
+  oneof update {
+    UpdateEntityName update_entity_name = 2;
+    UpdateEntityStatus update_entity_status = 3;
+    UpdateEntityEventKeyMappingStatus update_entity_event_key_mapping_status = 4;
+    AddEntityEventKeyMappings add_entity_event_key_mappings = 5;
+    RemoveEntityEventKeyMappings remove_entity_event_key_mappings = 6;
+  }
+}
+
+message WorkflowView {
+
+  enum MetricStatus {
+    UNKNOWN_METRIC_STATUS = 0;
+    GREEN = 1;
+    RED = 2;
+  }
+
+  enum NodeStatus {
+    UNKNOWN_NODE_STATUS = 0;
+    GOOD = 1;
+    BAD = 2;
+  }
+
+  enum NodeConnectionType {
+    UNKNOWN_CONNECTION_TYPE = 0;
+    IN = 1;
+    OUT = 2;
+  }
+
+  enum DeltaType {
+    UNKNOWN_DELTA_TYPE = 0;
+    UP = 1;
+    DOWN = 2;
+  }
+
+  message Node {
+    message NodeMetric {
+      google.protobuf.StringValue name = 1;
+      google.protobuf.StringValue value = 2;
+      MetricStatus metric_status = 3;
+      google.protobuf.StringValue metric_link = 4;
+      google.protobuf.DoubleValue delta = 5;
+      DeltaType delta_type = 6;
+    }
+
+    google.protobuf.UInt64Value node_id = 1;
+    google.protobuf.StringValue label = 2;
+    NodeStatus status = 3;
+    repeated NodeConnectionType connection_types = 4;
+    repeated NodeMetric metrics = 5;
+    google.protobuf.StringValue workflow_node_config = 6;
+  }
+
+  message Edge {
+    message EdgeMetric {
+      google.protobuf.StringValue name = 1;
+      google.protobuf.StringValue value = 2;
+      MetricStatus metric_status = 3;
+    }
+
+    google.protobuf.UInt64Value start_node_id = 1;
+    google.protobuf.UInt64Value end_node_id = 2;
+    repeated EdgeMetric metrics = 3;
+  }
+
+  repeated Node nodes = 1;
+  repeated Edge edges = 2;
+}
+
+message FunnelView {
+
+  message Node {
+    google.protobuf.StringValue name = 1;
+    google.protobuf.UInt64Value value = 2;
+  }
+
+  message Edge {
+    google.protobuf.StringValue source = 1;
+    google.protobuf.StringValue target = 2;
+    google.protobuf.UInt64Value value = 3;
+  }
+
+  repeated Node data = 1;
+  repeated Edge links = 2;
+}

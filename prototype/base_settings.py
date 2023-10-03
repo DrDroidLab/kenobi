@@ -131,7 +131,7 @@ DATABASES = {
         'USER': env.str("CLICKHOUSE_USERNAME", default='default'),
         'PASSWORD': env.str("CLICKHOUSE_PASSWORD", default=''),
         'OPTIONS': {
-            'secure': True,
+            'secure': env.bool("CLICKHOUSE_SECURE", default=True),
             'settings': {
                 'allow_experimental_object_type': 1
             }

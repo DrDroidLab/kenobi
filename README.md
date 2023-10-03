@@ -6,7 +6,7 @@
 
 ## Kenobi -- Open Source Log-to-Metrics & Log-to-Funnels platform
 
-Kenobi helps you proactively monitor your application by defining correlations in your logs.
+Kenobi helps you proactively monitor your application by defining correlations in your logs. Kenobi is designed to have a flexible rule-engine, easy-to-use interface and hassle-free deployment.
 
 ## Capabilities
 
@@ -15,12 +15,12 @@ You can buffer a stream of logs to Kenobi and define filters and transformations
 
 ### 2. Event Sequences: 
 Once you have events flowing in, you can define different sequences by joining them. Here are some of the examples:
-1. **2-step sequence**: Define a relation, A &rarr; B with A being primary and B being secondary event (defined as a monitor)
+1. **2-step sequence**  (defined as a monitor): Define a relation, A<sub>1</sub> &rarr; A<sub>2</sub> with A<sub>1</sub> being primary and A<sub>2</sub> being secondary event
     ![img.png](img.png)
-1. **n-step sequence**: Define a set of events A<sub>1</sub> &rarr; A<sub>2</sub> &rarr; ... &rarr; A<sub>n</sub> that are expected to happen sequentially (defined as a funnel)
+1. **n-step sequence** (defined as a funnel): Define a set of events A<sub>1</sub> &rarr; A<sub>2</sub> &rarr; ... &rarr; A<sub>n</sub> that are expected to happen sequentially
    - [ ] todo -- add recording here.
    ![img_2.png](img_2.png)
-1. **n-step trees**: Define a set of events that are not necessarily sequential but inter-related (defined as an entity)
+1. **n-step trees** (defined as an entity): Define a set of events that are not necessarily sequential but inter-related
    - [ ] todo -- add recording here
    ![img_1.png](img_1.png)
    
@@ -61,11 +61,16 @@ Play around in demo environment 👇🏽
 For the purpose of this sandbox, we have created a sample payment application. In the sandbox, you will be able to see logs from one such application, and how we can transform it into funnels and charts.
 
 - **Cloud Sandbox:** Play around in the cloud sandbox [here](https://sandbox.drdroid.io/) (email ID required - we will not share your PII with any external party or send you unnecessary emails)
-- **Self-hosted Sandbox:** Spin a demo in your own environment, run the following on a Linux machine with Docker (recommended 2GB or 4GB memory)
+- **Self-hosted Sandbox:** 
+  - Spin a demo in your own environment, run the following on a Linux machine with Docker (recommended 2GB or 4GB memory to run the test scripts)
+     ```bash 
+        /bin/bash docker_deploy.sh
+     ```
+  - Run the test scripts using the command
+     ```bash 
+        /bin/bash
+     ```
 
- ```bash 
-  /bin/bash docker_deploy.sh
- ```
 - [ ] Deployment commands are insufficient. Will need your inputs here.
 
 ### Integrating your log stream to Kenobi
@@ -74,15 +79,13 @@ Before being able to create funnels, metrics or rules, you need to parse data in
 
 You can stream application logs into Kenobi using:
 * Native events SDK (this SDK is compatible to the events format expected on the platform)
-
 In case you want to stream from your existing sources, you can read the following documentations:
-* [Cloudwatch Logs](https://docs.drdroid.io/docs/connector-cloudwatch)
-* [Segment events](https://docs.drdroid.io/docs/connector-segment)
-
+* [Cloudwatch Logs via Firehose](https://docs.drdroid.io/docs/connector-cloudwatch)
+* [Segment events via Firehose](https://docs.drdroid.io/docs/connector-segment)
 
 ### Cloud Hosting
 Doctor Droid supports a robust cloud platform for Kenobi. If you'd like to use the cloud platform instead of managing the platform in-house, sign up on our [website](https://app.drdroid.io/signup) or [book a demo](https://calendly.com/siddarthjain/catchup-call-clone).
 
-
 ### License
 This repo is available under the [MIT license](https://github.com/DrDroidLab/kenobi/blob/main/LICENSE).
+- [ ] Todo: Discuss [Licensing of Dependencies](https://github.com/FHPythonUtils/LicenseCheck) within the repo like Clickhouse, Kafka. Potentially explore Apache 2.0 instead of MIT.

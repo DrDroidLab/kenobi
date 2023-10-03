@@ -74,16 +74,56 @@ const EntityTypeTableRender = ({ data, loading }) => {
   );
 };
 
+const EntityTypeTableCardRender = ({ data, loading }) => {
+  return (
+    <>
+      {loading ? <LinearProgress /> : null}
+      <Table stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell className={styles['tableTitle']}>Name</TableCell>
+            <TableCell className={styles['tableTitle']}>Status</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data?.map((item, index) => (
+            <TableRow
+              key={index}
+              sx={{
+                '&:last-child td, &:last-child th': { border: 0 }
+              }}
+            >
+              <TableCell component="th" scope="row">
+                <Link to={`/entity/${item?.entity?.id}`} className={styles['link']}>
+                  {item?.entity?.name}
+                </Link>
+              </TableCell>
+              <TableCell align="left">
+                <Chip
+                  label={item?.entity?.is_active ? 'Active' : 'Inactive'}
+                  style={{ backgroundColor: item?.entity?.is_active ? '#7FFFD4 ' : 'lightgrey' }}
+                />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {!data?.length ? <NoExistingEntity /> : null}
+    </>
+  );
+};
+
 const EntityTypesTable = ({
   entitySummaries,
   total,
   pageSize,
   pageUpdateCb,
-  tableContainerStyles
+  tableContainerStyles,
+  isCard
 }) => {
   return (
     <PaginatedTable
-      renderTable={EntityTypeTableRender}
+      renderTable={isCard ? EntityTypeTableCardRender : EntityTypeTableRender}
       data={entitySummaries}
       total={total}
       pageSize={pageSize}

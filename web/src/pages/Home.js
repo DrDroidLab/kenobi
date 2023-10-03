@@ -78,6 +78,7 @@ const Home = () => {
           <Grid item>
             <SuspenseLoader loading={!isDashboardsFetched} loader={<TableSkeleton noOfLines={2} />}>
               <DashboardTableCard
+                isCard={true}
                 dashboards={dashboards}
                 extraHeader={totalDashboards}
                 total={totalDashboards}
@@ -88,6 +89,7 @@ const Home = () => {
           <Grid item>
             <SuspenseLoader loading={!isEntitiesFetched} loader={<TableSkeleton noOfLines={2} />}>
               <EntitiesTypeTableCard
+                isCard={true}
                 entities={entitySummaries}
                 extraHeader={totalEntities}
                 total={totalEntities}

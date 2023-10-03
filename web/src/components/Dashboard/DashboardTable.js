@@ -108,10 +108,69 @@ const DashboardTableRender = ({ data, loading, refreshTable }) => {
   );
 };
 
-const DashboardTable = ({ dashList, total, pageSize, pageUpdateCb, tableContainerStyles }) => {
+const DashboardTableCardRender = ({ data, loading, refreshTable }) => {
+  return (
+    <>
+      {loading ? <LinearProgress /> : null}
+      <Table stickyHeader>
+        <TableHead>
+          <TableRow>
+            <TableCell className={styles['tableTitle']}>Name</TableCell>
+            <TableCell className={styles['tableTitle']}>Panel Types</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {data?.map((item, index) => (
+            <TableRow
+              key={index}
+              sx={{
+                '&:last-child td, &:last-child th': { border: 0 }
+              }}
+            >
+              <TableCell component="th" scope="row">
+                <Link to={`/dashboard/${btoa(item?.name)}`} className={styles['link']}>
+                  {item.name}
+                </Link>
+              </TableCell>
+              <TableCell component="th" scope="row">
+                {item.panels.map((panel, index) =>
+                  panel.data.type ? (
+                    <Chip
+                      key={index}
+                      label={panel.data.type}
+                      style={{ backgroundColor: '#ebebeb ' }}
+                      className={styles['chip']}
+                    />
+                  ) : (
+                    <Chip
+                      key={index}
+                      label={'CHART'}
+                      style={{ backgroundColor: '#ebebeb ' }}
+                      className={styles['chip']}
+                    />
+                  )
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      {!data?.length ? <NoExistingDashboard /> : null}
+    </>
+  );
+};
+
+const DashboardTable = ({
+  dashList,
+  total,
+  pageSize,
+  pageUpdateCb,
+  tableContainerStyles,
+  isCard
+}) => {
   return (
     <PaginatedTable
-      renderTable={DashboardTableRender}
+      renderTable={isCard ? DashboardTableCardRender : DashboardTableRender}
       data={dashList}
       total={total}
       pageSize={pageSize}

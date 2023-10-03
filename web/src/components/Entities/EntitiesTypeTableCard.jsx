@@ -54,6 +54,7 @@ const EntitiesTypeTableCard = ({
         pageSize={pageSize}
         pageUpdateCb={pageUpdateCb}
         tableContainerStyles={tableContainerStyles}
+        isCard={isCard}
       />
     </div>
   );

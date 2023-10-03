@@ -8,7 +8,8 @@ const DashboardTableCard = ({
   total,
   pageSize,
   pageUpdateCb,
-  tableContainerStyles
+  tableContainerStyles,
+  isCard
 }) => {
   return (
     <div className="border border-gray-300 rounded-md bg-white">
@@ -31,6 +32,7 @@ const DashboardTableCard = ({
         pageSize={pageSize}
         pageUpdateCb={pageUpdateCb}
         tableContainerStyles={tableContainerStyles}
+        isCard={isCard}
       />
     </div>
   );

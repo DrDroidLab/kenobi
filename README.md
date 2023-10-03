@@ -34,7 +34,6 @@ Define aggregations on your events and sequences. Some of the allowed metric typ
 ### 4. Alerting Rule Engine:
 Kenobi enables you to create rules over your events and event sequences. Here's how the rule engine is defined:
 
-<<<<<<< HEAD
 The fastest and most reliable way to get started with Doctor Droid is signing up for free to [Doctor Droid Cloud](https://app.drdroid.io/signup). Your first 1 million events are free every month, after which you pay based on usage.
 
 ### Sandbox

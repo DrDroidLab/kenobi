@@ -8,7 +8,6 @@ from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from google.protobuf.wrappers_pb2 import BoolValue
 from rest_framework.decorators import authentication_classes, api_view
-from sentry_sdk import capture_exception
 
 from accounts.authentication import AccountApiTokenAuthentication, \
     AwsKinesisApiTokenAuthentication
@@ -58,7 +57,6 @@ def proto_schema_validator(request_schema):
                 else:
                     request_message = request_schema()
             except Exception as e:
-                capture_exception(e)
                 return JsonResponse(error_dict('Error while deserializing the proto msg', e), status=400,
                                     content_type='application/json')
 
@@ -71,7 +69,6 @@ def proto_schema_validator(request_schema):
                 elif isinstance(response, HttpResponse):
                     return response
             except Exception as e:
-                capture_exception(e)
                 return JsonResponse(error_dict('Error while processing the request', e), status=500,
                                     content_type='application/json')
 

@@ -4,7 +4,6 @@ import traceback
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
-from sentry_sdk import capture_exception
 
 from prototype.kafka.consumer import KafkaConsumer
 
@@ -89,7 +88,6 @@ class Command(BaseCommand):
                 polling_timeout=options['polling_timeout']
             )
         except Exception as ex:
-            capture_exception(ex)
             print(f"Error initializing KafkaConsumer: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
             sys.exit(1)
 
@@ -101,5 +99,4 @@ class Command(BaseCommand):
                 consumer.run()
                 return
             except Exception as ex:
-                capture_exception(ex)
                 print(f'Error running consumer: {traceback.format_exception(type(ex), ex, ex.__traceback__)}')

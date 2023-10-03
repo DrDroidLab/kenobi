@@ -457,14 +457,3 @@ CLICKHOUSE_CLIENT_CONFIG = {
     'username': env.str("CLICKHOUSE_USERNAME", default='default'),
     'password': env.str("CLICKHOUSE_PASSWORD", default=''),
 }
-
-# import sentry_sdk
-# from sentry_sdk.integrations.django import DjangoIntegration
-# sentry_sdk.init(
-#     dsn="https://ea9044fdffff47ba95e2501dddc6fedf@o4504790581837824.ingest.sentry.io/4504790583148544",
-#     integrations=[
-#         DjangoIntegration(),
-#     ],
-#     traces_sample_rate=0.0,
-#     send_default_pii=True
-# )

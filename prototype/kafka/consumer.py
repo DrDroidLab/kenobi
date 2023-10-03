@@ -3,7 +3,6 @@ import traceback
 from typing import Dict
 
 from confluent_kafka import Consumer, TIMESTAMP_NOT_AVAILABLE
-from sentry_sdk import capture_exception
 
 from prototype.kafka.processor import Processor
 from utils.import_utils import import_attribute
@@ -82,7 +81,6 @@ class KafkaConsumer:
                 self.log(f'Processed {len(msgs)} message with max delay: {min_msg_delay_time}')
             except Exception as ex:
                 span.set_traceback()
-                capture_exception(ex)
                 self.log(f'Error processing message: {traceback.format_exception(type(ex), ex, ex.__traceback__)}')
 
     def run(self):

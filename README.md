@@ -37,6 +37,11 @@ To deploy Doctor Droid in your own environment, run the following on a Linux mac
   /bin/bash docker_deploy.sh
  ``` 
 
+Post this, you can use the platform on port 80 on your host IP address. Use the following credentials for login: 
+```
+Username -> user@drdroid.io
+Password -> password
+```
 Open source deployments are very scalable due to micro-service architecture. In case you see difficulties in scaling it, reach out to us at [support@drdroid.io](mailto:support@drdroid.io) and we'll help you.
 
 

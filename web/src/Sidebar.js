@@ -103,19 +103,6 @@ function Sidebar() {
             }
           }}
         >
-          <Link exact to="/checklist">
-            <ListItemButton
-              selected={selectedIndex === 11}
-              onClick={event => handleListItemClick(event, 11)}
-            >
-              <ListItemIcon sx={{ minWidth: '44px' }}>
-                <LightbulbIcon />
-              </ListItemIcon>
-              <span className="text-sm">Getting Started</span>
-            </ListItemButton>
-          </Link>
-
-          <hr></hr>
 
           <Link exact to="/">
             <ListItemButton
@@ -153,19 +140,6 @@ function Sidebar() {
                 <FilterAltIcon />
               </ListItemIcon>
               <span className="text-sm">Funnel (beta)</span>
-              {/* <ListItemText primary="Events" /> */}
-            </ListItemButton>
-          </Link>
-
-          <Link to="/workflow">
-            <ListItemButton
-              selected={selectedIndex === 13}
-              onClick={event => handleListItemClick(event, 13)}
-            >
-              <ListItemIcon sx={{ minWidth: '44px' }}>
-                <DeviceHubIcon />
-              </ListItemIcon>
-              <span className="text-sm">Workflow (beta)</span>
               {/* <ListItemText primary="Events" /> */}
             </ListItemButton>
           </Link>

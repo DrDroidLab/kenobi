@@ -1,7 +1,6 @@
 from django.db import transaction as dj_transaction
 from django.db.models import Avg, Count, F
 from google.protobuf.wrappers_pb2 import UInt64Value, StringValue
-from sentry_sdk import capture_exception
 
 from accounts.models import Account
 from event.cache import GLOBAL_PANEL_CACHE
@@ -30,7 +29,7 @@ def save_entity_funnel_panel_config(scope, entity_funnel_panel: PanelV1):
                                             panel=proto_to_dict(entity_funnel_panel))
         return True
     except Exception as e:
-        capture_exception(e)
+        print(str(e))
     return False
 
 
@@ -146,7 +145,6 @@ def entity_funnels_create(scope, entity_funnel_panel: PanelV1) -> (Entity, str):
                                                  event_key_tuples)
         return db_entity_funnel, None
     except Exception as e:
-        capture_exception(e)
         return None, f'Incorrect Payload: Unable to save Entity Funnel in DB'
 
 

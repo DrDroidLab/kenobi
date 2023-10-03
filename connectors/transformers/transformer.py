@@ -5,7 +5,6 @@ import re
 from typing import List
 
 from django.conf import settings
-from sentry_sdk import capture_exception
 
 from connectors.models import TransformerMapping
 from connectors.transformers.decoder import decoder_facade
@@ -120,7 +119,6 @@ class CloudwatchJsonLogTransformer(Transformer):
                                     events.append(event)
 
                     except Exception as e:
-                        capture_exception(e)
                         logger.error(
                             "Exception generating event for Cloudwatch JSON Log: {}, error: {}".format(log, e))
                         continue

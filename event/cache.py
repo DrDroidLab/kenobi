@@ -2,7 +2,6 @@ import traceback
 
 from django.conf import settings
 from django.core.cache import caches
-from sentry_sdk import capture_exception
 
 from protos.event.base_pb2 import Context
 
@@ -22,7 +21,6 @@ class PanelCache:
             values = [c.get(k) for k in c.keys(f'panel:{account_id}:*')]
             return values
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while getting panel config from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -34,7 +32,6 @@ class PanelCache:
                 caches[self._cache_key].persist(key)
             return panel, True
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while setting panel config from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -45,7 +42,6 @@ class PanelCache:
                 value = caches[self._cache_key].delete(key)
                 return [value]
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while deleting panel config from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -65,7 +61,6 @@ class DashboardCache:
             values = [c.get(k) for k in c.keys(f'dashboard:{account_id}:*')]
             return values
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while getting/setting dashboard config from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -76,7 +71,6 @@ class DashboardCache:
             if not time_to_expire_s:
                 caches[self._cache_key].persist(key, dashboard, time_to_expire_s)
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while setting dashboard config in cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -87,7 +81,6 @@ class DashboardCache:
                 value = caches[self._cache_key].delete(key)
                 return [value]
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while deleting dashboard config from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -105,7 +98,6 @@ class EventSearchQueryRequestCache:
             key = f'event_search_query:{account_id}:{search_context_id}'
             return caches[self._cache_key].get(key)
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while getting event search query from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -116,7 +108,6 @@ class EventSearchQueryRequestCache:
             key = f'event_search_query:{account_id}:{search_context_id}'
             caches[self._cache_key].set(key, event_search_query_request, time_to_expire_s)
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while setting event search query in cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -129,7 +120,6 @@ class EventSearchQueryRequestCache:
             value = caches[self._cache_key].delete(key)
             return value
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while deleting event search querty  from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -147,7 +137,6 @@ class MonitorTransactionSearchQueryRequestCache:
             key = f'monitor_transaction_search_query:{account_id}:{search_context_id}'
             return caches[self._cache_key].get(key)
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while getting monitor transaction search query from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -158,7 +147,6 @@ class MonitorTransactionSearchQueryRequestCache:
             key = f'monitor_transaction_search_query:{account_id}:{search_context_id}'
             caches[self._cache_key].set(key, event_search_query_request, time_to_expire_s)
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while setting monitor transaction search query in cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -171,7 +159,6 @@ class MonitorTransactionSearchQueryRequestCache:
             value = caches[self._cache_key].delete(key)
             return value
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while deleting monitor transaction search query from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -189,7 +176,6 @@ class ExportRequestCache:
             key = f'export_request:{account_id}:{export_context}:{user_email}:'
             return caches[self._cache_key].get(key)
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while getting export context from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -202,7 +188,6 @@ class ExportRequestCache:
             key = f'export_request:{account_id}:{export_context}:{user_email}:'
             caches[self._cache_key].set(key, export_id, time_to_expire_s)
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while setting export context in cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 
@@ -214,7 +199,6 @@ class ExportRequestCache:
             value = caches[self._cache_key].delete(key)
             return value
         except Exception as ex:
-            capture_exception(ex)
             print(
                 f"Error while deleting monitor transaction search query from cache:: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
 

@@ -401,40 +401,6 @@ services:
     networks:
       - mynetwork
 
-  account_management_celery_worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: prototype:latest
-    command: ./start-celery-worker.sh
-    environment:
-      - "DJANGO_SETTINGS_MODULE=prototype.base_settings"
-      - "DJANGO_DEBUG=True"
-      - "POSTGRES_HOST=db"
-      - "DJANGO_CSRF_TRUSTED_ORIGINS=http://127.0.0.1:8080"
-      - "CELERY_BROKER_URL=redis://cache:6379/0"
-      - "CELERY_RESULT_BACKEND=redis://cache:6379/0"
-      - "REDIS_URL=redis://cache:6379/0"
-      - "CACHE_BACKEND=redis"
-      - "POSTGRES_USER=user"
-      - "POSTGRES_PASSWORD=pass"
-      - "REPLICA1_POSTGRES_HOST=db"
-      - "CLICKHOUSE_HOST=clickhouse"
-      - "CLICKHOUSE_USERNAME=default"
-      - "CLICKHOUSE_PASSWORD=password"
-      - "CLICKHOUSE_PORT=9000"
-      - "CLICKHOUSE_SECURE=0"
-      - "KAFKA_BOOTSTRAP_SERVERS=kafka:29092"
-      - "CELERY_QUEUE=account_management"
-    depends_on:
-      - db
-      - cache
-      - clickhouse
-      - clickhouse-init
-      - setup_db
-    networks:
-      - mynetwork
-
   webvault:
     image: webvault:latest
     ports:

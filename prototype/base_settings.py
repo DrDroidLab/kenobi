@@ -127,7 +127,7 @@ DATABASES = {
     'clickhouse': {
         'ENGINE': 'clickhouse_backend.backend',
         'HOST': env.str("CLICKHOUSE_HOST", default='localhost'),
-        'PORT': 9440,
+        'PORT': env.str("CLICKHOUSE_PORT", default='9000'),
         'USER': env.str("CLICKHOUSE_USERNAME", default='default'),
         'PASSWORD': env.str("CLICKHOUSE_PASSWORD", default=''),
         'OPTIONS': {

@@ -52,7 +52,22 @@ Post this, you can use the platform on port 80 on your host IP address. Use the 
 Username -> user@drdroid.io
 Password -> password
 ```
-Open source deployments are very scalable due to micro-service architecture. In case you see difficulties in scaling it, reach out to us at [support@drdroid.io](mailto:support@drdroid.io) and we'll help you.
+Take note of the deployment hostname/IP and note the API token from the API Keys section in your portal. They will be handy when setting up integration for sending events.
+
+Doctor Droid's open source deployment is reasonably scalable due to its micro-service architecture. In case you see difficulties in scaling it, reach out to us at [support@drdroid.io](mailto:support@drdroid.io) and we'll help you.
+
+#### Creating sample events
+You can run the in-built script for a basic payments workflow in an ecommerce company. Once your deployment is setup, set the following environment variables:
+```bash
+export HOST_URL=<your_deployment_ip_or_hostname> # Add http or https in it without the trailing slash
+export API_TOKEN=<your_api_key>
+```
+Post this, you can run the basic python script that publishes events. Make sure you have python3 and pip3 installed in your environment
+```bash
+/bin/bash events_publish.sh
+```
+
+After your events start coming in, you can check them in the Search section. 
 
 Few alert rules you can setup from your events:
 * Event level rules:

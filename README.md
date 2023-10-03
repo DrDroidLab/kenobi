@@ -2,28 +2,39 @@
   <img alt="drdroidlogo" src="https://uploads-ssl.webflow.com/642ad9ebc00f9544d49b1a6b/642ad9ebc00f9514ad9b1ab8_drdroidlogo.png">
 </p>
 
+- [ ] Todo: Define a deployable sandbox config that works in a much smaller machine (say 2GB or 4GB memory).
 
-## Doctor Droid is an open source platform for events analytics, funnels & alerts
+## Kenobi -- Open Source Log-to-Metrics & Log-to-Funnels platform
 
-- Create events using our APIs, SDK or connect any event stream like Segment, Kinesis, Cloudwatch
-- Search data with a simple & powerful search engine
-- Group events together to model your product workflow, both user facing and backend 
-- Create metric dashboards for every team member to be on the same page
-- Create funnels for your events linked to the same customer/session, to know where the breakage is
+Kenobi helps you proactively monitor your application by defining correlations in your logs. Kenobi is designed to have a flexible rule-engine, easy-to-use interface and hassle-free deployment.
 
-Doctor Droid is available with hosting in all data regions available in AWS. It's free to get started and your first 1 million events are free every month.
+## Capabilities
 
-## Table of Contents
+### 1. Log to events:
+You can buffer a stream of logs to Kenobi and define filters and transformations on the platform using the GROK parser built into the platform.
 
-- [Get started for free](#get-started-for-free)
-- [Features](#features)
-- [Docs and support](#docs-and-support)
-- [Open-source vs paid](#open-source-vs-paid)
+### 2. Event Sequences: 
+Once you have events flowing in, you can define different sequences by joining them. Here are some of the examples:
+1. **2-step sequence**  (defined as a monitor): Define a relation, A<sub>1</sub> &rarr; A<sub>2</sub> with A<sub>1</sub> being primary and A<sub>2</sub> being secondary event
+    ![img.png](img.png)
+1. **n-step sequence** (defined as a funnel): Define a set of events A<sub>1</sub> &rarr; A<sub>2</sub> &rarr; ... &rarr; A<sub>n</sub> that are expected to happen sequentially
+   - [ ] todo -- add recording here.
+   ![img_2.png](img_2.png)
+1. **n-step trees** (defined as an entity): Define a set of events that are not necessarily sequential but inter-related
+   - [ ] todo -- add recording here
+   ![img_1.png](img_1.png)
+   
 
-## Get started for free
+### 3. Metrics:
+Define aggregations on your events and sequences. Some of the allowed metric types include:
+* Transition time and success rate between nodes in an event sequence or tree
+* Aggregation functions on any attribute within an event
+* Aggregation functions on any attribute within an event, grouped by another (enum) attribute in any other event
 
-### Doctor Droid Cloud (Recommended)
+### 4. Alerting Rule Engine:
+Kenobi enables you to create rules over your events and event sequences. Here's how the rule engine is defined:
 
+<<<<<<< HEAD
 The fastest and most reliable way to get started with Doctor Droid is signing up for free to [Doctor Droid Cloud](https://app.drdroid.io/signup). Your first 1 million events are free every month, after which you pay based on usage.
 
 ### Sandbox
@@ -44,27 +55,59 @@ Password -> password
 ```
 Open source deployments are very scalable due to micro-service architecture. In case you see difficulties in scaling it, reach out to us at [support@drdroid.io](mailto:support@drdroid.io) and we'll help you.
 
+Few alert rules you can setup from your events:
+* Event level rules:
+  * Occurrence of an event
+  * Occurrence of an event, more than n times (threshold)
+* Sequence level rules:
+  * Change in aggregated drop % between consecutive nodes
+  * Change in transition times between consecutive nodes (aggregated as well as event-level configurations)
+* Metric level rules:
+  * Change in metric value against a static threshold
+  * Change in metric value against a benchmark (previous timeline)
 
-## Features
-Doctor Droid helps you analyse product journeys for your customers and background tasks. 
 
+Here are some rules that would be possible in the platform:
+* Send me an alert if node A<sub>2</sub> does not happen after node A<sub>1</sub> for every instance where attribute_value=specific_value.
+* Send me an alert if more than 5% of the nodes "between" node A<sub>1</sub> and node A<sub>n</sub> are stuck at a specific node.
+* Send me an alert if sequence is stuck at node A<sub>i</sub> for more than stipulated duration.
 
-[![Doctor Droid Features](https://drdroid-public-content.s3.us-west-2.amazonaws.com/Screenshot+2023-10-02+at+8.29.49+PM.png)](https://www.youtube.com/watch?v=iJE9YZl0b5I)
-<p align="center">Want to find out more? <a href="https://calendly.com/siddarthjain/catchup-call-clone">Request a demo!</a>
+Kenobi can push alerts to itself, email and slack currently.
 
+Sounds useful?
 
-Read a full list of [Doctor Droid features](https://drdroid.io/monitor-transactions)
+Play around in demo environment 👇🏽
 
-## Docs and support
+## Exploring Kenobi in a Sandbox
 
-Read how to [integrate](https://docs.drdroid.io/docs/data-sources) to send your events to Doctor Droid in our [documentation](https://docs.drdroid.io/docs/).
+For the purpose of this sandbox, we have created a sample payment application. In the sandbox, you will be able to see logs from one such application, and how we can transform it into funnels and charts.
 
-Learn more about getting the most out of Doctor Droid's features in [youtube channel](https://www.youtube.com/@DrDroidDev).
+- **Cloud Sandbox:** Play around in the cloud sandbox [here](https://sandbox.drdroid.io/) (email ID required - we will not share your PII with any external party or send you unnecessary emails)
+- **Self-hosted Sandbox:** 
+  - Spin a demo in your own environment, run the following on a Linux machine with Docker (recommended 2GB or 4GB memory to run the test scripts)
+     ```bash 
+        /bin/bash docker_deploy.sh
+     ```
+  - Run the test scripts using the command
+     ```bash 
+        /bin/bash
+     ```
 
-[Ask a question](mailto:support@drdroid.io) to get support.
+- [ ] Deployment commands are insufficient. Will need your inputs here.
 
-## Open-source vs. paid
+### Integrating your log stream to Kenobi
 
+Before being able to create funnels, metrics or rules, you need to parse data into a kenobi readable format. 
+
+You can stream application logs into Kenobi using:
+* Native events SDK (this SDK is compatible to the events format expected on the platform)
+In case you want to stream from your existing sources, you can read the following documentations:
+* [Cloudwatch Logs via Firehose](https://docs.drdroid.io/docs/connector-cloudwatch)
+* [Segment events via Firehose](https://docs.drdroid.io/docs/connector-segment)
+
+### Cloud Hosting
+Doctor Droid supports a robust cloud platform for Kenobi. If you'd like to use the cloud platform instead of managing the platform in-house, sign up on our [website](https://app.drdroid.io/signup) or [book a demo](https://calendly.com/siddarthjain/catchup-call-clone).
+
+### License
 This repo is available under the [MIT license](https://github.com/DrDroidLab/kenobi/blob/main/LICENSE).
-
-To learn more, [book a demo](https://calendly.com/siddarthjain/catchup-call-clone) or see our [pricing page](https://drdroid.io/pricing).
+- [ ] Todo: Discuss [Licensing of Dependencies](https://github.com/FHPythonUtils/LicenseCheck) within the repo like Clickhouse, Kafka. Potentially explore Apache 2.0 instead of MIT.

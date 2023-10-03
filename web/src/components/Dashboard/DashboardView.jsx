@@ -10,8 +10,6 @@ import { CircularProgress } from '@mui/material';
 
 import PanelGrid from './PanelGrid';
 
-import data from './mockdata.json';
-
 const DashboardView = () => {
   const { id } = useParams();
 

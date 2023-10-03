@@ -37,7 +37,6 @@ ALLOWED_HOSTS = ['*']
 
 LOCAL_APPS = [
     'accounts.apps.AccountsConfig',
-    'workflow.apps.WorkflowConfig',
     'event.apps.EventConfig',
     'connectors.apps.ConnectorsConfig',
     'management.apps.ManagementConfig',

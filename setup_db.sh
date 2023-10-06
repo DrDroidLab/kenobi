@@ -7,6 +7,8 @@ set -o pipefail
 # exits if any of your variables is not set
 set -o nounset
 
+sleep 10
+
 echo "${POSTGRES_HOST} ${POSTGRES_PORT}"
 
 postgres_ready() {

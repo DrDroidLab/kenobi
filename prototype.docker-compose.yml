@@ -169,6 +169,7 @@ services:
 
   zookeeper:
     image: confluentinc/cp-zookeeper:6.1.1
+    platform: linux/amd64
     ports:
       - "2181:2181"
     environment:
@@ -178,6 +179,7 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:6.1.1
+    platform: linux/amd64
     depends_on:
       - zookeeper
     ports:
@@ -196,6 +198,7 @@ services:
 
   init-kafka:
     image: confluentinc/cp-kafka:6.1.1
+    platform: linux/amd64
     depends_on:
       - kafka
     entrypoint: [ '/bin/sh', '-c' ]

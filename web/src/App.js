@@ -52,7 +52,6 @@ const Monitors = React.lazy(() => import('./pages/Monitors'));
 const Monitor = React.lazy(() => import('./pages/Monitor/index'));
 const MonitorTransaction = React.lazy(() => import('./pages/MonitorTransaction'));
 const ApiTokens = React.lazy(() => import('./components/Apikeys/Apikeys'));
-const Checklist = React.lazy(() => import('./pages/Checklist'));
 
 const App = () => {
   return (
@@ -96,7 +95,6 @@ const App = () => {
               <Route path="/integrations/newrelic" element={<NewRelicIntegration />} />
               <Route path="/workflows" element={<Workflows />} />
               <Route path="/api-keys" element={<ApiTokens />} />
-              <Route path="/checklist" element={<Checklist />} />
             </Route>
           </Route>
         </Route>

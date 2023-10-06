@@ -3,6 +3,8 @@ set -x
 set -o errexit
 set -o nounset
 
+sleep 10
+
 QUEUE="${CELERY_QUEUE:-celery}"
 WORKER_COUNT="${CELERY_WORKER_COUNT:-10}"
 

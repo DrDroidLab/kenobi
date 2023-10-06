@@ -3,6 +3,7 @@
 set -o errexit
 set -o nounset
 
+sleep 10
 
 WORKER_COUNT="${GUNICORN_WORKER_COUNT:-5}"
 WORKER_MAX_REQUEST="${GUNICORN_WORKER_MAX_REQUEST:-100000}"

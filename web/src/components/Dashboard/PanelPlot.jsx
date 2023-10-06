@@ -14,7 +14,6 @@ import TableSkeleton from '../../components/Skeleton/TableLoader';
 
 import { CircularProgress } from '@mui/material';
 import Backdrop from '@mui/material/Backdrop';
-import { CheckBox } from '@frigade/react';
 import CheckboxComponent from '../CheckboxComponent';
 import useToggle from '../../hooks/useToggle';
 import Toast from '../Toast';

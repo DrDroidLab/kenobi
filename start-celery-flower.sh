@@ -3,6 +3,8 @@
 set -o errexit
 set -o nounset
 
+sleep 10
+
 worker_ready() {
     celery -A prototype inspect ping
 }

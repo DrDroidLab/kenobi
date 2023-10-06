@@ -42,7 +42,7 @@ Deprecated==1.2.14
 dj-database-url==1.2.0
 dj-email-url==1.0.6
 dj-rest-auth==2.2.7
-Django==4.1.4
+Django==4.1.10
 django-allauth==0.52.0
 django-appconf==1.0.5
 django-cache-url==3.4.4
@@ -68,7 +68,7 @@ Flask-BasicAuth==0.2.0
 Flask-Cors==3.0.10
 flower==1.2.0
 fqdn==1.5.1
-gevent==22.10.2
+gevent>=23.9.0
 geventhttpclient==2.0.9
 greenlet==2.0.2
 grpcio==1.51.1

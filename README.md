@@ -2,7 +2,6 @@
   <img alt="drdroidlogo" src="https://uploads-ssl.webflow.com/642ad9ebc00f9544d49b1a6b/642ad9ebc00f9514ad9b1ab8_drdroidlogo.png">
 </p>
 
-- [ ] Todo: Define a deployable sandbox config that works in a much smaller machine (say 2GB or 4GB memory).
 
 ## Kenobi -- Open Source Log-to-Metrics & Log-to-Funnels platform
 
@@ -106,8 +105,6 @@ For the purpose of this sandbox, we have created a sample payment application. I
      ```bash 
         /bin/bash
      ```
-
-- [ ] Deployment commands are insufficient. Will need your inputs here.
 
 ### Integrating your log stream to Kenobi
 

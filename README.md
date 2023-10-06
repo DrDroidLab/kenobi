@@ -2,7 +2,6 @@
   <img alt="drdroidlogo" src="https://uploads-ssl.webflow.com/642ad9ebc00f9544d49b1a6b/642ad9ebc00f9514ad9b1ab8_drdroidlogo.png">
 </p>
 
-- [ ] Todo: Define a deployable sandbox config that works in a much smaller machine (say 2GB or 4GB memory).
 
 ## Kenobi -- Open Source Log-to-Metrics & Log-to-Funnels platform
 
@@ -32,22 +31,30 @@ Define aggregations on your events and sequences. Some of the allowed metric typ
 * Aggregation functions on any attribute within an event, grouped by another (enum) attribute in any other event
 
 ### 4. Alerting Rule Engine:
-Kenobi enables you to create rules over your events and event sequences. Here's how the rule engine is defined:
+Kenobi enables you to create rules over your events and event sequences. Here are some rules that would be possible in the platform:
+* Send me an alert if node A<sub>2</sub> does not happen after node A<sub>1</sub> for every instance where attribute_value=specific_value.
+* Send me an alert if more than 5% of the nodes "between" node A<sub>1</sub> and node A<sub>n</sub> are stuck at a specific node.
+* Send me an alert if sequence is stuck at node A<sub>i</sub> for more than stipulated duration.
 
-The fastest and most reliable way to get started with Doctor Droid is signing up for free to [Doctor Droid Cloud](https://app.drdroid.io/signup). Your first 1 million events are free every month, after which you pay based on usage.
+Kenobi can push these alerts to itself, email and slack currently.
 
-### Sandbox
-Explore the platform first-hand at [Doctor Droid Sandbox](https://sandbox.drdroid.io)
+Sounds useful?
 
-### Open-source setup (Advanced)
+Play around in demo environment 👇🏽
 
-To deploy Doctor Droid in your own environment, run the following on a Linux machine with Docker (recommended 8GB memory):
+
+## Exploring Kenobi in a Sandbox
+For the purpose of this sandbox, we have created a sample payment application. In the sandbox, you will be able to see logs from one such application, and how we can transform it into funnels and charts.
+
+- **Cloud Sandbox:** Play around in the cloud sandbox [here](https://sandbox.drdroid.io/) (email ID required - we will not share your PII with any external party or send you unnecessary emails)
+- **Self-hosted Sandbox:** 
+To deploy Kenobi in your environment, run the following on a Linux machine with Docker (recommended 8GB memory):
 
  ```bash 
   /bin/bash docker_deploy.sh
  ``` 
 
-Post this, you can use the platform on port 80 on your host IP address. Use the following credentials for login: 
+After this, you can use the platform on port 80 on your host IP address. Use the following credentials for login: 
 ```
 Username -> user@drdroid.io
 Password -> password
@@ -69,46 +76,6 @@ Post this, you can run the basic python script that publishes events. Make sure 
 
 After your events start coming in, you can check them in the Search section. 
 
-Few alert rules you can setup from your events:
-* Event level rules:
-  * Occurrence of an event
-  * Occurrence of an event, more than n times (threshold)
-* Sequence level rules:
-  * Change in aggregated drop % between consecutive nodes
-  * Change in transition times between consecutive nodes (aggregated as well as event-level configurations)
-* Metric level rules:
-  * Change in metric value against a static threshold
-  * Change in metric value against a benchmark (previous timeline)
-
-
-Here are some rules that would be possible in the platform:
-* Send me an alert if node A<sub>2</sub> does not happen after node A<sub>1</sub> for every instance where attribute_value=specific_value.
-* Send me an alert if more than 5% of the nodes "between" node A<sub>1</sub> and node A<sub>n</sub> are stuck at a specific node.
-* Send me an alert if sequence is stuck at node A<sub>i</sub> for more than stipulated duration.
-
-Kenobi can push alerts to itself, email and slack currently.
-
-Sounds useful?
-
-Play around in demo environment 👇🏽
-
-## Exploring Kenobi in a Sandbox
-
-For the purpose of this sandbox, we have created a sample payment application. In the sandbox, you will be able to see logs from one such application, and how we can transform it into funnels and charts.
-
-- **Cloud Sandbox:** Play around in the cloud sandbox [here](https://sandbox.drdroid.io/) (email ID required - we will not share your PII with any external party or send you unnecessary emails)
-- **Self-hosted Sandbox:** 
-  - Spin a demo in your own environment, run the following on a Linux machine with Docker (recommended 2GB or 4GB memory to run the test scripts)
-     ```bash 
-        /bin/bash docker_deploy.sh
-     ```
-  - Run the test scripts using the command
-     ```bash 
-        /bin/bash
-     ```
-
-- [ ] Deployment commands are insufficient. Will need your inputs here.
-
 ### Integrating your log stream to Kenobi
 
 Before being able to create funnels, metrics or rules, you need to parse data into a kenobi readable format. 
@@ -124,4 +91,3 @@ Doctor Droid supports a robust cloud platform for Kenobi. If you'd like to use t
 
 ### License
 This repo is available under the [MIT license](https://github.com/DrDroidLab/kenobi/blob/main/LICENSE).
-- [ ] Todo: Discuss [Licensing of Dependencies](https://github.com/FHPythonUtils/LicenseCheck) within the repo like Clickhouse, Kafka. Potentially explore Apache 2.0 instead of MIT.

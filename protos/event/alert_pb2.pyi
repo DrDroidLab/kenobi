@@ -187,3 +187,44 @@ class AlertMonitorTransaction(google.protobuf.message.Message):
     def WhichOneof(self, oneof_group: typing_extensions.Literal["stats", b"stats"]) -> typing_extensions.Literal["delayed_monitor_transaction_stats"] | None: ...
 
 global___AlertMonitorTransaction = AlertMonitorTransaction
+
+@typing_extensions.final
+class AlertEntityInstance(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _Type:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _TypeEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[AlertEntityInstance._Type.ValueType], builtins.type):  # noqa: F821
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        UNKNOWN: AlertEntityInstance._Type.ValueType  # 0
+        PER_EVENT: AlertEntityInstance._Type.ValueType  # 1
+        AGGREGATED_EVENTS: AlertEntityInstance._Type.ValueType  # 2
+
+    class Type(_Type, metaclass=_TypeEnumTypeWrapper): ...
+    UNKNOWN: AlertEntityInstance.Type.ValueType  # 0
+    PER_EVENT: AlertEntityInstance.Type.ValueType  # 1
+    AGGREGATED_EVENTS: AlertEntityInstance.Type.ValueType  # 2
+
+    TYPE_FIELD_NUMBER: builtins.int
+    ENTITY_INSTANCE_FIELD_NUMBER: builtins.int
+    ALERT_ID_FIELD_NUMBER: builtins.int
+    TRIGGER_NAME_FIELD_NUMBER: builtins.int
+    type: global___AlertEntityInstance.Type.ValueType
+    @property
+    def entity_instance(self) -> protos.event.entity_pb2.EntityInstance: ...
+    alert_id: builtins.int
+    trigger_name: builtins.str
+    def __init__(
+        self,
+        *,
+        type: global___AlertEntityInstance.Type.ValueType = ...,
+        entity_instance: protos.event.entity_pb2.EntityInstance | None = ...,
+        alert_id: builtins.int = ...,
+        trigger_name: builtins.str = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["entity_instance", b"entity_instance"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["alert_id", b"alert_id", "entity_instance", b"entity_instance", "trigger_name", b"trigger_name", "type", b"type"]) -> None: ...
+
+global___AlertEntityInstance = AlertEntityInstance

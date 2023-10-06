@@ -60,23 +60,20 @@ def annotate_entity_instance_stats(account, qs: QuerySet, dtr: DateTimeRange):
             ).values_list("count", flat=True)
         )
     )
-    qs = qs.annotate(
-        transaction_count=Subquery(
-            filter_dtr(account.entityinstancemonitortransactionmapping_set.filter(
-                entity_instance=OuterRef('pk'),
-            ), dtr, 'created_at').annotate(
-                count=DistinctFunc(F('monitor_transaction'), function='Count')
-            ).values_list("count", flat=True)
-        )
-    )
 
-    qs = qs.annotate(
-        has_alerts=Exists(
-            account.alertmonitortransactionmapping_set.filter(
-                monitor_transaction__entityinstancemonitortransactionmapping__entity_instance=OuterRef('pk'),
-            )
-        )
-    )
+    # qs = qs.annotate(
+    #     has_alerts=Exists(
+    #         account.alertmonitortransactionmapping_set.filter(
+    #             monitor_transaction__entityinstancemonitortransactionmapping__entity_instance=OuterRef('pk'),
+    #         )
+    #     )
+    # )
+
+    # qs = qs.annotate(
+    #     alerts=account.alertentityinstancemapping_set.filter(
+    #             entity_instance=OuterRef('pk'),
+    #         ).values_list('alert_id')
+    # )
 
     return qs
 

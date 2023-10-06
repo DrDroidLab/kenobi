@@ -14,7 +14,7 @@ from event.base.filter_token_op import LiteralArrayColumnTokenFilterOp
 from event.base.literal import event_key_type_to_literal_type, literal_type_is_groupable, \
     literal_type_aggregation_functions
 from event.models import AlertMonitorTransactionMapping, MonitorTransactionEventMapping, MonitorTransaction, \
-    EntityInstanceEventMapping
+    EntityInstanceEventMapping, AlertEntityInstanceMapping
 from protos.event.engine_options_pb2 import AttributeOption, AttributeOptionV2
 from protos.event.literal_pb2 import LiteralType, IdLiteral
 from protos.event.metric_pb2 import AggregationFunction
@@ -474,8 +474,8 @@ entity_instance_columns = {
     'has_alerts': AnnotatedColumn(
         name='has_alerts',
         annotation_relation=Exists(
-            AlertMonitorTransactionMapping.objects.filter(
-                monitor_transaction__entityinstancemonitortransactionmapping__entity_instance=OuterRef('pk')).filter(
+            AlertEntityInstanceMapping.objects.filter(
+                entity_instance=OuterRef('pk')).filter(
                 created_at__gte=OuterRef('created_at'))
         ),
         type=LiteralType.BOOLEAN,

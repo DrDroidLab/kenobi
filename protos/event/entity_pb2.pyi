@@ -363,24 +363,44 @@ global___EntityInstancePartial = EntityInstancePartial
 class EntityInstanceStats(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    @typing_extensions.final
+    class EntityAlert(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        ALERT_ID_FIELD_NUMBER: builtins.int
+        ENTITY_TRIGGER_NAME_FIELD_NUMBER: builtins.int
+        alert_id: builtins.int
+        entity_trigger_name: builtins.str
+        def __init__(
+            self,
+            *,
+            alert_id: builtins.int = ...,
+            entity_trigger_name: builtins.str = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["alert_id", b"alert_id", "entity_trigger_name", b"entity_trigger_name"]) -> None: ...
+
     EVENT_COUNT_FIELD_NUMBER: builtins.int
     TRANSACTION_COUNT_FIELD_NUMBER: builtins.int
     HAS_ALERTS_FIELD_NUMBER: builtins.int
+    ALERTS_FIELD_NUMBER: builtins.int
     @property
     def event_count(self) -> google.protobuf.wrappers_pb2.UInt64Value: ...
     @property
     def transaction_count(self) -> google.protobuf.wrappers_pb2.UInt64Value: ...
     @property
     def has_alerts(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def alerts(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___EntityInstanceStats.EntityAlert]: ...
     def __init__(
         self,
         *,
         event_count: google.protobuf.wrappers_pb2.UInt64Value | None = ...,
         transaction_count: google.protobuf.wrappers_pb2.UInt64Value | None = ...,
         has_alerts: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        alerts: collections.abc.Iterable[global___EntityInstanceStats.EntityAlert] | None = ...,
     ) -> None: ...
     def HasField(self, field_name: typing_extensions.Literal["event_count", b"event_count", "has_alerts", b"has_alerts", "transaction_count", b"transaction_count"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["event_count", b"event_count", "has_alerts", b"has_alerts", "transaction_count", b"transaction_count"]) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["alerts", b"alerts", "event_count", b"event_count", "has_alerts", b"has_alerts", "transaction_count", b"transaction_count"]) -> None: ...
 
 global___EntityInstanceStats = EntityInstanceStats
 

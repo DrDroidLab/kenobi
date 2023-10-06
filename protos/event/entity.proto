@@ -103,9 +103,16 @@ message EntityInstancePartial {
 }
 
 message EntityInstanceStats {
+
+  message EntityAlert {
+    uint64 alert_id = 1;
+    string entity_trigger_name = 2;
+  }
+
   google.protobuf.UInt64Value event_count = 1;
   google.protobuf.UInt64Value transaction_count = 2;
   google.protobuf.BoolValue has_alerts = 3;
+  repeated EntityAlert alerts = 4;
 }
 
 message EntityInstanceSummary {

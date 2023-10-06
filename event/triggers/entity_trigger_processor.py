@@ -7,9 +7,10 @@ from google.protobuf.wrappers_pb2 import UInt32Value, DoubleValue, UInt64Value
 
 from accounts.models import Account
 from event.models import MonitorTransaction, Alert, AlertMonitorTransactionMapping, MonitorTransactionEventMapping, \
-    EntityInstanceEventMapping, Event
+    EntityInstanceEventMapping, Event, AlertEntityInstanceMapping
 from event.triggers.trigger_processor import TriggerProcessor
-from protos.event.alert_pb2 import AlertStats, AlertMonitorTransaction, DelayedMonitorTransactionStats
+from protos.event.alert_pb2 import AlertStats, AlertMonitorTransaction, DelayedMonitorTransactionStats, \
+    AlertEntityInstance
 from protos.event.entity_pb2 import EntityTriggerDefinition
 from protos.event.monitor_pb2 import MonitorTransaction as MonitorTransactionProto
 from protos.event.options_pb2 import TriggerOption
@@ -36,7 +37,7 @@ def process_last_event_entity_trigger(scope, entity_instance_mapping_list, confi
                                                                             event_timestamp__gt=instance_mapping.event_timestamp)
                                 .exclude(event_key__event_type_id=config_event_id))
         if not later_event_mappings or len(later_event_mappings) == 0:
-            alert_data.append({"entity_instance_value": instance_mapping.entity_instance.instance, "event_key_name": event_key_name,
+            alert_data.append({"entity_instance_value": instance_mapping.entity_instance.instance, "entity_instance_id": instance_mapping.entity_instance.id, "event_key_name": event_key_name,
                                "event_timestamp": int(instance_mapping.event_timestamp.timestamp()), "event_name": event_name})
     return alert_data
 
@@ -53,7 +54,7 @@ def process_event_count_entity_trigger(scope, entity_instance_mapping_list, conf
                                                                           event_timestamp__gt=(instance_mapping.event_timestamp - datetime.timedelta(seconds=config_time_interval_sec)),
                                                                           event_key__event_type_id=config_event_id)
         if len(later_event_mappings) > config_threshold_count - 1:
-            alert_data.append({"entity_instance_value": instance_mapping.entity_instance.instance, "event_key_name": event_key_name,
+            alert_data.append({"entity_instance_value": instance_mapping.entity_instance.instance, "entity_instance_id": instance_mapping.entity_instance.id, "event_key_name": event_key_name,
                                "event_timestamp": int(instance_mapping.event_timestamp.timestamp()), "event_name": event_name})
     return alert_data
 
@@ -63,7 +64,7 @@ def process_event_occurrence_entity_trigger(entity_instance_mapping_list):
     for instance_mapping in entity_instance_mapping_list:
         event_name = instance_mapping.event_key.event_type.name
         event_key_name = instance_mapping.event_key.name
-        alert_data.append({"entity_instance_value": instance_mapping.entity_instance.instance, "event_key_name": event_key_name,
+        alert_data.append({"entity_instance_value": instance_mapping.entity_instance.instance, "entity_instance_id": instance_mapping.entity_instance.id, "event_key_name": event_key_name,
                                "event_timestamp": int(instance_mapping.event_timestamp.timestamp()), "event_name": event_name})
     return alert_data
 
@@ -105,6 +106,11 @@ class PerEventTriggerProcessor(TriggerProcessor):
             last_event_alerts = process_last_event_entity_trigger(scope, check_interval_entity_instance_mapping_list, config_event_id)
             for alert_data in last_event_alerts:
                 saved_alert = Alert.objects.create(account=scope, entity_trigger_id=trigger_id, stats=alert_data)
+
+                AlertEntityInstanceMapping.objects.get_or_create(account=scope,
+                                                                     alert=saved_alert,
+                                                                     entity_instance_id=alert_data.get('entity_instance_id'),
+                                                                     type=AlertEntityInstance.Type.PER_EVENT)
                 generated_alerts.append(saved_alert)
 
         if trigger_rule_type in [EntityTriggerDefinition.EntityTriggerRuleType.EVENT_COUNT]:
@@ -124,6 +130,12 @@ class PerEventTriggerProcessor(TriggerProcessor):
             event_count_alerts = process_event_count_entity_trigger(scope, check_interval_entity_instance_mapping_list, config_event_id, config_time_interval_sec, config_threshold_count)
             for alert_data in event_count_alerts:
                 saved_alert = Alert.objects.create(account=scope, entity_trigger_id=trigger_id, stats=alert_data)
+
+                AlertEntityInstanceMapping.objects.get_or_create(account=scope,
+                                                                 alert=saved_alert,
+                                                                 entity_instance_id=alert_data.get(
+                                                                     'entity_instance_id'),
+                                                                 type=AlertEntityInstance.Type.PER_EVENT)
                 generated_alerts.append(saved_alert)
 
         if trigger_rule_type in [EntityTriggerDefinition.EntityTriggerRuleType.EVENT_OCCURS]:
@@ -140,6 +152,12 @@ class PerEventTriggerProcessor(TriggerProcessor):
             event_occurrence_alerts = process_event_occurrence_entity_trigger(check_interval_entity_instance_mapping_list)
             for alert_data in event_occurrence_alerts:
                 saved_alert = Alert.objects.create(account=scope, entity_trigger_id=trigger_id, stats=alert_data)
+
+                AlertEntityInstanceMapping.objects.get_or_create(account=scope,
+                                                                 alert=saved_alert,
+                                                                 entity_instance_id=alert_data.get(
+                                                                     'entity_instance_id'),
+                                                                 type=AlertEntityInstance.Type.PER_EVENT)
                 generated_alerts.append(saved_alert)
 
         return generated_alerts

@@ -53,3 +53,15 @@ message AlertMonitorTransaction {
   }
   string trigger_name = 5;
 }
+
+message AlertEntityInstance {
+  enum Type {
+    UNKNOWN = 0;
+    PER_EVENT = 1;
+    AGGREGATED_EVENTS = 2;
+  }
+  Type type = 1;
+  EntityInstance entity_instance = 2;
+  uint64 alert_id = 3;
+  string trigger_name = 4;
+}

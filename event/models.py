@@ -11,7 +11,7 @@ from google.protobuf.wrappers_pb2 import UInt64Value, BoolValue, DoubleValue, St
 
 from accounts.models import Account
 from protos.event.alert_pb2 import AlertDetail as AlertDetailProto, AlertStats, AlertMonitorTransaction, \
-    DelayedMonitorTransactionStats, AlertSummary as AlertSummaryProto
+    DelayedMonitorTransactionStats, AlertSummary as AlertSummaryProto, AlertEntityInstance
 from protos.event.base_pb2 import EventKey as EventKeyProto, EventType as EventTypeProto, Event as EventProto, \
     EventTypePartial as EventTypePartialProto, EventTypeSummary, EventTypeStats, EventTypeDefinition, TimeRange
 from protos.event.entity_pb2 import EntityPartial, EntityStats, EntitySummary, Entity as EntityProto, EntityDetail, \
@@ -480,70 +480,6 @@ class EntityEventKeyMapping(models.Model):
         )
 
 
-class EntityInstance(models.Model):
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
-    instance = models.TextField(db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    class Meta:
-        unique_together = [['account', 'entity', 'instance']]
-
-    @property
-    def proto_partial(self) -> EntityInstancePartial:
-        return EntityInstancePartial(
-            id=UInt64Value(value=self.id),
-            instance=StringValue(value=self.instance),
-        )
-
-    @property
-    def proto(self) -> EntityInstanceProto:
-        return EntityInstanceProto(
-            id=UInt64Value(value=self.id),
-            entity=self.entity.proto_partial,
-            instance=StringValue(value=self.instance),
-        )
-
-    @property
-    def stats(self) -> EntityInstanceStats:
-        return EntityInstanceStats(
-            event_count=UInt64Value(value=getattr(self, 'event_count', 0)),
-            transaction_count=UInt64Value(value=getattr(self, 'transaction_count', 0)),
-            has_alerts=BoolValue(value=getattr(self, 'has_alerts', False)),
-        )
-
-    @property
-    def summary(self) -> EntityInstanceSummary:
-        return EntityInstanceSummary(
-            entity_instance=self.proto_partial,
-            stats=self.stats,
-        )
-
-    @property
-    def detail(self) -> EntityInstanceDetail:
-        return EntityInstanceDetail(
-            entity_instance=self.proto,
-            stats=self.stats,
-        )
-
-
-class EntityInstanceEventMapping(models.Model):
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    entity_instance = models.ForeignKey(EntityInstance, on_delete=models.CASCADE)
-    event = models.ForeignKey(Event, on_delete=models.CASCADE)
-
-    event_key = models.ForeignKey(EventKey, on_delete=models.CASCADE)
-    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
-    instance = models.TextField(db_index=True)
-    event_processed_kvs = models.JSONField(null=True, blank=True)
-    event_timestamp = models.DateTimeField(null=True, blank=True, db_index=True)
-
-    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
-
-    class Meta:
-        unique_together = [['account', 'entity_instance', 'event']]
-
-
 class Alert(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     trigger = models.ForeignKey(Trigger, on_delete=models.CASCADE, db_index=True, null=True)
@@ -590,6 +526,113 @@ class Alert(models.Model):
         if self.stats:
             return dict_to_proto(self.stats, AlertStats)
         return AlertStats()
+
+
+class EntityInstance(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
+    instance = models.TextField(db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    alert = models.ManyToManyField(
+        Alert,
+        through='AlertEntityInstanceMapping',
+        related_name='entity_alerts'
+    )
+
+    class Meta:
+        unique_together = [['account', 'entity', 'instance']]
+
+    @property
+    def proto_partial(self) -> EntityInstancePartial:
+        return EntityInstancePartial(
+            id=UInt64Value(value=self.id),
+            instance=StringValue(value=self.instance),
+        )
+
+    @property
+    def proto(self) -> EntityInstanceProto:
+        return EntityInstanceProto(
+            id=UInt64Value(value=self.id),
+            entity=self.entity.proto_partial,
+            instance=StringValue(value=self.instance),
+        )
+
+    @property
+    def stats(self) -> EntityInstanceStats:
+        alert_id_trigger_name_mapping = AlertEntityInstanceMapping.objects.filter(
+            entity_instance=self).values('alert_id', 'alert__entity_trigger__name')
+        return EntityInstanceStats(
+            event_count=UInt64Value(value=getattr(self, 'event_count', 0)),
+            transaction_count=UInt64Value(value=getattr(self, 'transaction_count', 0)),
+            alerts=list(EntityInstanceStats.EntityAlert(alert_id=x['alert_id'], entity_trigger_name=x['alert__entity_trigger__name']) for x in list(alert_id_trigger_name_mapping))
+        )
+
+    @property
+    def summary(self) -> EntityInstanceSummary:
+        return EntityInstanceSummary(
+            entity_instance=self.proto_partial,
+            stats=self.stats,
+        )
+
+    @property
+    def detail(self) -> EntityInstanceDetail:
+        return EntityInstanceDetail(
+            entity_instance=self.proto,
+            stats=self.stats,
+        )
+
+
+class AlertEntityInstanceMapping(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    alert = models.ForeignKey(Alert, on_delete=models.CASCADE, db_index=True)
+    entity_instance = models.ForeignKey(EntityInstance, on_delete=models.CASCADE, db_index=True)
+    type = models.IntegerField(null=True, blank=True,
+                               choices=generate_choices(AlertEntityInstance.Type),
+                               default=AlertEntityInstance.Type.UNKNOWN,
+                               db_index=True)
+    stats = models.JSONField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        unique_together = [['account', 'alert', 'entity_instance']]
+
+    @property
+    def proto(self) -> AlertEntityInstance:
+        if self.type == AlertEntityInstance.Type.PER_EVENT:
+            return AlertEntityInstance(type=self.type,
+                                           alert_id=self.alert_id,
+                                           entity_instance=self.entity_instance.proto)
+        elif self.type == AlertEntityInstance.Type.AGGREGATED_EVENTS:
+            return AlertEntityInstance(type=self.type,
+                                           alert_id=self.alert_id,
+                                           entity_instance=self.entity_instance.proto)
+
+    @property
+    def miniproto(self) -> AlertEntityInstance:
+        if self.type == AlertEntityInstance.Type.PER_EVENT:
+            return AlertEntityInstance(type=self.type,
+                                           alert_id=self.alert_id,
+                                           trigger_name=self.alert.entity_trigger.name)
+        return None
+
+
+
+class EntityInstanceEventMapping(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE)
+    entity_instance = models.ForeignKey(EntityInstance, on_delete=models.CASCADE)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    event_key = models.ForeignKey(EventKey, on_delete=models.CASCADE)
+    entity = models.ForeignKey(Entity, on_delete=models.CASCADE)
+    instance = models.TextField(db_index=True)
+    event_processed_kvs = models.JSONField(null=True, blank=True)
+    event_timestamp = models.DateTimeField(null=True, blank=True, db_index=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        unique_together = [['account', 'entity_instance', 'event']]
 
 
 class MonitorTransaction(models.Model):

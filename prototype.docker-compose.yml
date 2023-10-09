@@ -408,6 +408,8 @@ services:
     image: webvault:latest
     ports:
       - '80:80'
+    depends_on:
+      - server
     networks:
       - mynetwork
 

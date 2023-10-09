@@ -4,9 +4,12 @@ from allauth.account.models import EmailAddress
 
 user = User.objects.create_superuser(email='user@drdroid.io', password='password')
 user_id = user.id
-account_id = user.account_id
 
-Account.objects.filter(id=account_id).update(is_whitelisted=True)
+account = Account.objects.create(is_whitelisted=True, user=user)
+account_id = account.id
+user.account_id = account_id
+user.save()
+
 AccountApiToken.objects.create(account_id=account_id, created_by_id=user_id)
 EmailAddress.objects.create(user_id=user_id, verified=True, primary=True, email=user.email)
 

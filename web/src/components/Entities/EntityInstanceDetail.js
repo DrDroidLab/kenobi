@@ -69,9 +69,6 @@ const EntityInstanceRow = ({ entity_instance }) => {
         <TableCell align="left" component="th" scope="row">
           {dayjs.unix(timestamp / 1000).format('YYYY-MM-DD HH:mm:ss')}
         </TableCell>
-        <TableCell align="left" component="th" scope="row">
-          {alerts?.length ? <Chips alertList={alerts} /> : ''}
-        </TableCell>
       </TableRow>
       {expanded ? (
         <TableRow>
@@ -124,14 +121,6 @@ const EntityInstanceDetail = ({ loading, data }) => {
             </TableCell>
             <TableCell className={styles['tableTitle']} align="left">
               <b>Created at&nbsp;</b>
-            </TableCell>
-            <TableCell className={styles['tableTitle']} align="left">
-              <b>Triggered Alerts&nbsp;</b>
-              <Tooltip title="All triggered alerts for this event">
-                <IconButton className={styles['toolTip']}>
-                  <InfoIcon />
-                </IconButton>
-              </Tooltip>
             </TableCell>
           </TableRow>
         </TableHead>

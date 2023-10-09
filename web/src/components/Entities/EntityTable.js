@@ -20,6 +20,20 @@ import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 import EntityInstanceDetail from './EntityInstanceDetail';
 
+const Chips = ({ alertList }) => {
+  return (
+    <>
+      {alertList.map((item, index) => (
+        <a href={`/alerts/${item.alert_id}/`}>
+          <span key={index} className={styles['chip-alert']}>
+            {item.entity_trigger_name}
+          </span>
+        </a>
+      ))}
+    </>
+  );
+};
+
 const EntityRow = ({ entity }) => {
   const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -74,7 +88,7 @@ const EntityRow = ({ entity }) => {
           {entity.stats.event_count}
         </TableCell>
         <TableCell align="left" component="th" scope="row">
-          {entity.stats.has_alerts ? <ReportProblemIcon sx={{ color: '#63000f' }} /> : null}
+          {entity.stats.alerts?.length ? <Chips alertList={entity.stats.alerts} /> : ''}
         </TableCell>
       </TableRow>
       {expanded ? (
@@ -122,8 +136,8 @@ const EntityTable = ({ loading, data }) => {
               </Tooltip>
             </TableCell>
             <TableCell className={styles['tableTitle']} align="left">
-              <b>Alerted&nbsp;</b>
-              <Tooltip title="Shows if any alerts raised for this entity">
+              <b>Alerts&nbsp;</b>
+              <Tooltip title="Shows any alerts raised for this entity">
                 <IconButton className={styles['toolTip']}>
                   <InfoIcon />
                 </IconButton>

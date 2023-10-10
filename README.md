@@ -86,6 +86,12 @@ In case you want to stream from your existing sources, you can read the followin
 * [Cloudwatch Logs via Firehose](https://docs.drdroid.io/docs/connector-cloudwatch)
 * [Segment events via Firehose](https://docs.drdroid.io/docs/connector-segment)
 
+### How to stop the deployment
+Run the following command from the root directory
+ ```bash 
+  /bin/bash docker_stop.sh
+ ``` 
+
 ### Cloud Hosting
 Doctor Droid supports a robust cloud platform for Kenobi. If you'd like to use the cloud platform instead of managing the platform in-house, sign up on our [website](https://app.drdroid.io/signup) or [book a demo](https://calendly.com/siddarthjain/catchup-call-clone).
 

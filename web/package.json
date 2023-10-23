@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@babel/traverse": "7.23.2",
     "@mui/icons-material": "^5.11.9",
     "@mui/lab": "^5.0.0-alpha.120",
     "@mui/material": "^5.11.10",
@@ -58,8 +59,8 @@
     "**/*": "prettier --write --ignore-unknown"
   },
   "devDependencies": {
-    "@babel/core": "^7.21.0",
-    "@babel/preset-env": "^7.20.2",
+    "@babel/core": "7.23.2",
+    "@babel/preset-env": "7.23.2",
     "@types/jest": "^29.5.1",
     "@types/node": "^20.2.3",
     "@types/react": "^18.2.6",

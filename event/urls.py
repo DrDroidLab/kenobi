@@ -78,7 +78,6 @@ urlpatterns = [
     path('api/entity/node_metrics_timeseries', views.workflow_node_metrics_timeseries),
 
     path('api/funnel/v2', views.funnel_get_v2),
-    path('api/funnel/drop_off_distribution', views.funnel_drop_off_distribution_get),
     path('api/funnel/drop_off_distribution/v2', views.funnel_drop_off_distribution_get_v2),
     path('api/funnel/drop_off', views.funnel_drop_off_get),
 
@@ -88,4 +87,7 @@ urlpatterns = [
     path('api/entity_funnels/view', views.funnel_get_v2),
     path('api/entity_funnels/create', views.entity_funnel_create),
     path('api/entity_funnels/get', views.entity_funnel_get),
+    path('api/entity_funnels/update', views.entity_funnel_update),
+    path('api/entity_funnels/drop_off_distribution', views.entity_funnel_drop_off_distribution_get),
+    path('api/entity_funnels/drop_off_distribution/download', views.entity_funnel_drop_off_distribution_download),
 ]

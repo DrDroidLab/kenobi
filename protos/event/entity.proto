@@ -246,3 +246,44 @@ message FunnelView {
   repeated Node data = 1;
   repeated Edge links = 2;
 }
+
+message UpdateEntityFunnelOp {
+  enum Op {
+    UNKNOWN = 0;
+    UPDATE_ENTITY_FUNNEL_NAME = 1;
+    UPDATE_ENTITY_FUNNEL_STATUS = 2;
+    UPDATE_ENTITY_FUNNEL_MONITOR_MAPPING_STATUS = 3;
+    ADD_ENTITY_FUNNEL_MONITOR_MAPPINGS = 4;
+    REMOVE_ENTITY_FUNNEL_MONITOR_MAPPINGS = 5;
+  }
+
+  message UpdateEntityFunnelName {
+    google.protobuf.StringValue name = 1;
+  }
+
+  message UpdateEntityFunnelStatus {
+    google.protobuf.BoolValue is_active = 1;
+  }
+
+  message UpdateEntityFunnelMonitorMappingStatus {
+    google.protobuf.UInt64Value entity_funnel_monitor_mapping_id = 1;
+    google.protobuf.BoolValue is_active = 2;
+  }
+
+  message AddEntityFunnelMonitorMappings {
+    repeated uint64 monitor_ids = 1;
+  }
+
+  message RemoveEntityFunnelMonitorMappings {
+    repeated uint64 entity_funnel_monitor_mapping_ids = 1;
+  }
+
+  Op op = 1;
+  oneof update {
+    UpdateEntityFunnelName update_entity_funnel_name = 2;
+    UpdateEntityFunnelStatus update_entity_funnel_status = 3;
+    UpdateEntityFunnelMonitorMappingStatus update_entity_funnel_monitor_mapping_status = 4;
+    AddEntityFunnelMonitorMappings add_entity_funnel_monitor_mappings = 5;
+    RemoveEntityFunnelMonitorMappings remove_entity_funnel_monitor_mappings = 6;
+  }
+}

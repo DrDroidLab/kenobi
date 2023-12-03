@@ -1,3 +1,6 @@
+import logging
+from datetime import timedelta
+
 from django.db.utils import IntegrityError
 from google.protobuf.wrappers_pb2 import BoolValue, StringValue
 
@@ -7,6 +10,9 @@ from event.update_processor import monitor_update_processor
 from protos.event.api_pb2 import CreateOrUpdateMonitorRequest, Message, CreateOrUpdateMonitorResponse
 from protos.event.base_pb2 import EventKey
 from protos.event.monitor_pb2 import UpdateMonitorOp
+from prototype.utils.utils import current_datetime
+
+logger = logging.getLogger(__name__)
 
 
 def get_db_monitor_dict(db_name=None, requested_name=None, primary_key=None, secondary_key=None, is_active=None,
@@ -40,7 +46,8 @@ def get_db_monitor(account: Account, monitor_id=None, monitor_name=None, is_acti
         filters['secondary_key_id'] = secondary_key_id
     try:
         return account.monitor_set.filter(**filters)
-    except Exception:
+    except Exception as e:
+        logger.error(e)
         return None
 
 
@@ -88,6 +95,9 @@ def create_monitors(account: Account, monitor_name: str, primary_event_key_id, s
                                                  f"{secondary_event_key_id} already exists"
             db_monitor = db_monitors.first()
 
+        last_updated_at = db_monitor.updated_at
+        current_time_offset_1w = current_datetime() - timedelta(days=7)
+
         update_ops = [UpdateMonitorOp(op=UpdateMonitorOp.Op.UPDATE_MONITOR_STATUS,
                                       update_monitor_status=UpdateMonitorOp.UpdateMonitorStatus(
                                           is_active=BoolValue(value=True))),
@@ -98,7 +108,9 @@ def create_monitors(account: Account, monitor_name: str, primary_event_key_id, s
                                       update_monitor_name=UpdateMonitorOp.UpdateMonitorName(
                                           name=StringValue(value=monitor_name)))]
         monitor_update_processor.update(db_monitor, update_ops)
-        return db_monitor, False, None
+        if last_updated_at <= current_time_offset_1w:
+            return db_monitor, True, None
+        return db_monitor, True, last_updated_at
 
 
 def update_monitors(account: Account, request: CreateOrUpdateMonitorRequest):

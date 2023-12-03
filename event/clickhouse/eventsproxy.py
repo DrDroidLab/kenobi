@@ -34,6 +34,7 @@ from utils.singleton import singleton, singleton_function
 
 logger = logging.getLogger(__name__)
 
+
 def processed_kvs_to_kvs(processed_kvs: List[ProcessedIngestionEvent.ProcessedKeyValue]):
     return [
         KeyValue(key=kv.key.value, value=kv.value) for kv in processed_kvs

@@ -3497,3 +3497,149 @@ class GetEntityFunnelResponse(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "success", b"success", "workflow_view", b"workflow_view"]) -> None: ...
 
 global___GetEntityFunnelResponse = GetEntityFunnelResponse
+
+@typing_extensions.final
+class UpdateEntityFunnelRequest(google.protobuf.message.Message):
+    """///////////////////  Update Entity Funnel  /////////////////////"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    ENTITY_FUNNEL_ID_FIELD_NUMBER: builtins.int
+    UPDATE_ENTITY_FUNNEL_OPS_FIELD_NUMBER: builtins.int
+    @property
+    def entity_funnel_id(self) -> google.protobuf.wrappers_pb2.UInt64Value: ...
+    @property
+    def update_entity_funnel_ops(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.entity_pb2.UpdateEntityFunnelOp]: ...
+    def __init__(
+        self,
+        *,
+        entity_funnel_id: google.protobuf.wrappers_pb2.UInt64Value | None = ...,
+        update_entity_funnel_ops: collections.abc.Iterable[protos.event.entity_pb2.UpdateEntityFunnelOp] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["entity_funnel_id", b"entity_funnel_id"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["entity_funnel_id", b"entity_funnel_id", "update_entity_funnel_ops", b"update_entity_funnel_ops"]) -> None: ...
+
+global___UpdateEntityFunnelRequest = UpdateEntityFunnelRequest
+
+@typing_extensions.final
+class UpdateEntityFunnelResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    def __init__(
+        self,
+        *,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["message", b"message", "success", b"success"]) -> None: ...
+
+global___UpdateEntityFunnelResponse = UpdateEntityFunnelResponse
+
+@typing_extensions.final
+class GetEntityFunnelDropOffRequest(google.protobuf.message.Message):
+    """///////////////////  Get Entity Funnel Drop Off  /////////////////////"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    ENTITY_FUNNEL_NAME_FIELD_NUMBER: builtins.int
+    FUNNEL_KEY_NAME_FIELD_NUMBER: builtins.int
+    START_EVENT_TYPE_ID_FIELD_NUMBER: builtins.int
+    END_EVENT_TYPE_ID_FIELD_NUMBER: builtins.int
+    FILTER_KEY_NAME_FIELD_NUMBER: builtins.int
+    FILTER_VALUE_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    entity_funnel_name: builtins.str
+    funnel_key_name: builtins.str
+    start_event_type_id: builtins.int
+    end_event_type_id: builtins.int
+    filter_key_name: builtins.str
+    filter_value: builtins.str
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        entity_funnel_name: builtins.str = ...,
+        funnel_key_name: builtins.str = ...,
+        start_event_type_id: builtins.int = ...,
+        end_event_type_id: builtins.int = ...,
+        filter_key_name: builtins.str = ...,
+        filter_value: builtins.str = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["end_event_type_id", b"end_event_type_id", "entity_funnel_name", b"entity_funnel_name", "filter_key_name", b"filter_key_name", "filter_value", b"filter_value", "funnel_key_name", b"funnel_key_name", "meta", b"meta", "start_event_type_id", b"start_event_type_id"]) -> None: ...
+
+global___GetEntityFunnelDropOffRequest = GetEntityFunnelDropOffRequest
+
+@typing_extensions.final
+class GetEntityFunnelDropOffResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["meta", b"meta"]) -> None: ...
+
+global___GetEntityFunnelDropOffResponse = GetEntityFunnelDropOffResponse
+
+@typing_extensions.final
+class GetEntityFunnelDropOffDistributionResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    @typing_extensions.final
+    class FunnelEventTypeDistribution(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        EVENT_TYPE_NAME_FIELD_NUMBER: builtins.int
+        COUNT_FIELD_NUMBER: builtins.int
+        event_type_name: builtins.str
+        count: builtins.int
+        def __init__(
+            self,
+            *,
+            event_type_name: builtins.str = ...,
+            count: builtins.int = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["count", b"count", "event_type_name", b"event_type_name"]) -> None: ...
+
+    META_FIELD_NUMBER: builtins.int
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    PREVIOUS_NODE_COUNT_FIELD_NUMBER: builtins.int
+    FUNNEL_EVENT_TYPE_DISTRIBUTION_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    previous_node_count: builtins.int
+    @property
+    def funnel_event_type_distribution(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___GetEntityFunnelDropOffDistributionResponse.FunnelEventTypeDistribution]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        previous_node_count: builtins.int = ...,
+        funnel_event_type_distribution: collections.abc.Iterable[global___GetEntityFunnelDropOffDistributionResponse.FunnelEventTypeDistribution] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["funnel_event_type_distribution", b"funnel_event_type_distribution", "message", b"message", "meta", b"meta", "previous_node_count", b"previous_node_count", "success", b"success"]) -> None: ...
+
+global___GetEntityFunnelDropOffDistributionResponse = GetEntityFunnelDropOffDistributionResponse

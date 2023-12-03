@@ -3,6 +3,8 @@ from hashlib import md5
 
 from django.db import models
 
+from accounts.models import Account
+
 
 class PeriodicTaskStatus(IntEnum):
     UNKNOWN = 0
@@ -10,6 +12,7 @@ class PeriodicTaskStatus(IntEnum):
     SCHEDULED = 2
     RUNNING = 3
     COMPLETED = 4
+    FAILED = 5
 
     @classmethod
     def choices(cls):
@@ -19,7 +22,7 @@ class PeriodicTaskStatus(IntEnum):
 class PeriodicTaskResult(IntEnum):
     UNKNOWN = 0
     SUCCESS = 1
-    FAILED = 2
+    FAILURE = 2
 
     @classmethod
     def choices(cls):
@@ -57,13 +60,15 @@ class TaskRun(models.Model):
                                  default=PeriodicTaskStatus.UNKNOWN,
                                  db_index=True)
     result = models.IntegerField(null=True, blank=True, choices=PeriodicTaskResult.choices(),
-                                 default=PeriodicTaskResult.SUCCESS, db_index=True)
+                                 default=PeriodicTaskResult.UNKNOWN, db_index=True)
     scheduled_at = models.DateTimeField(auto_now_add=True, db_index=True)
-    started_at = models.DateTimeField(null=True, blank=True, auto_now=True, db_index=True)
-    completed_at = models.DateTimeField(null=True, blank=True, auto_now=True, db_index=True)
+    started_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    completed_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(null=True, blank=True, auto_now=True, db_index=True)
+
+    account = models.ForeignKey(Account, null=True, blank=True, on_delete=models.CASCADE, db_index=True)
 
     class Meta:
         unique_together = [['task', 'task_uuid']]

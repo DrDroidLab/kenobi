@@ -850,3 +850,138 @@ class FunnelView(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["data", b"data", "links", b"links"]) -> None: ...
 
 global___FunnelView = FunnelView
+
+@typing_extensions.final
+class UpdateEntityFunnelOp(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    class _Op:
+        ValueType = typing.NewType("ValueType", builtins.int)
+        V: typing_extensions.TypeAlias = ValueType
+
+    class _OpEnumTypeWrapper(google.protobuf.internal.enum_type_wrapper._EnumTypeWrapper[UpdateEntityFunnelOp._Op.ValueType], builtins.type):  # noqa: F821
+        DESCRIPTOR: google.protobuf.descriptor.EnumDescriptor
+        UNKNOWN: UpdateEntityFunnelOp._Op.ValueType  # 0
+        UPDATE_ENTITY_FUNNEL_NAME: UpdateEntityFunnelOp._Op.ValueType  # 1
+        UPDATE_ENTITY_FUNNEL_STATUS: UpdateEntityFunnelOp._Op.ValueType  # 2
+        UPDATE_ENTITY_FUNNEL_MONITOR_MAPPING_STATUS: UpdateEntityFunnelOp._Op.ValueType  # 3
+        ADD_ENTITY_FUNNEL_MONITOR_MAPPINGS: UpdateEntityFunnelOp._Op.ValueType  # 4
+        REMOVE_ENTITY_FUNNEL_MONITOR_MAPPINGS: UpdateEntityFunnelOp._Op.ValueType  # 5
+
+    class Op(_Op, metaclass=_OpEnumTypeWrapper): ...
+    UNKNOWN: UpdateEntityFunnelOp.Op.ValueType  # 0
+    UPDATE_ENTITY_FUNNEL_NAME: UpdateEntityFunnelOp.Op.ValueType  # 1
+    UPDATE_ENTITY_FUNNEL_STATUS: UpdateEntityFunnelOp.Op.ValueType  # 2
+    UPDATE_ENTITY_FUNNEL_MONITOR_MAPPING_STATUS: UpdateEntityFunnelOp.Op.ValueType  # 3
+    ADD_ENTITY_FUNNEL_MONITOR_MAPPINGS: UpdateEntityFunnelOp.Op.ValueType  # 4
+    REMOVE_ENTITY_FUNNEL_MONITOR_MAPPINGS: UpdateEntityFunnelOp.Op.ValueType  # 5
+
+    @typing_extensions.final
+    class UpdateEntityFunnelName(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        NAME_FIELD_NUMBER: builtins.int
+        @property
+        def name(self) -> google.protobuf.wrappers_pb2.StringValue: ...
+        def __init__(
+            self,
+            *,
+            name: google.protobuf.wrappers_pb2.StringValue | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["name", b"name"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["name", b"name"]) -> None: ...
+
+    @typing_extensions.final
+    class UpdateEntityFunnelStatus(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        IS_ACTIVE_FIELD_NUMBER: builtins.int
+        @property
+        def is_active(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+        def __init__(
+            self,
+            *,
+            is_active: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["is_active", b"is_active"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["is_active", b"is_active"]) -> None: ...
+
+    @typing_extensions.final
+    class UpdateEntityFunnelMonitorMappingStatus(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        ENTITY_FUNNEL_MONITOR_MAPPING_ID_FIELD_NUMBER: builtins.int
+        IS_ACTIVE_FIELD_NUMBER: builtins.int
+        @property
+        def entity_funnel_monitor_mapping_id(self) -> google.protobuf.wrappers_pb2.UInt64Value: ...
+        @property
+        def is_active(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+        def __init__(
+            self,
+            *,
+            entity_funnel_monitor_mapping_id: google.protobuf.wrappers_pb2.UInt64Value | None = ...,
+            is_active: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        ) -> None: ...
+        def HasField(self, field_name: typing_extensions.Literal["entity_funnel_monitor_mapping_id", b"entity_funnel_monitor_mapping_id", "is_active", b"is_active"]) -> builtins.bool: ...
+        def ClearField(self, field_name: typing_extensions.Literal["entity_funnel_monitor_mapping_id", b"entity_funnel_monitor_mapping_id", "is_active", b"is_active"]) -> None: ...
+
+    @typing_extensions.final
+    class AddEntityFunnelMonitorMappings(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        MONITOR_IDS_FIELD_NUMBER: builtins.int
+        @property
+        def monitor_ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+        def __init__(
+            self,
+            *,
+            monitor_ids: collections.abc.Iterable[builtins.int] | None = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["monitor_ids", b"monitor_ids"]) -> None: ...
+
+    @typing_extensions.final
+    class RemoveEntityFunnelMonitorMappings(google.protobuf.message.Message):
+        DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+        ENTITY_FUNNEL_MONITOR_MAPPING_IDS_FIELD_NUMBER: builtins.int
+        @property
+        def entity_funnel_monitor_mapping_ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+        def __init__(
+            self,
+            *,
+            entity_funnel_monitor_mapping_ids: collections.abc.Iterable[builtins.int] | None = ...,
+        ) -> None: ...
+        def ClearField(self, field_name: typing_extensions.Literal["entity_funnel_monitor_mapping_ids", b"entity_funnel_monitor_mapping_ids"]) -> None: ...
+
+    OP_FIELD_NUMBER: builtins.int
+    UPDATE_ENTITY_FUNNEL_NAME_FIELD_NUMBER: builtins.int
+    UPDATE_ENTITY_FUNNEL_STATUS_FIELD_NUMBER: builtins.int
+    UPDATE_ENTITY_FUNNEL_MONITOR_MAPPING_STATUS_FIELD_NUMBER: builtins.int
+    ADD_ENTITY_FUNNEL_MONITOR_MAPPINGS_FIELD_NUMBER: builtins.int
+    REMOVE_ENTITY_FUNNEL_MONITOR_MAPPINGS_FIELD_NUMBER: builtins.int
+    op: global___UpdateEntityFunnelOp.Op.ValueType
+    @property
+    def update_entity_funnel_name(self) -> global___UpdateEntityFunnelOp.UpdateEntityFunnelName: ...
+    @property
+    def update_entity_funnel_status(self) -> global___UpdateEntityFunnelOp.UpdateEntityFunnelStatus: ...
+    @property
+    def update_entity_funnel_monitor_mapping_status(self) -> global___UpdateEntityFunnelOp.UpdateEntityFunnelMonitorMappingStatus: ...
+    @property
+    def add_entity_funnel_monitor_mappings(self) -> global___UpdateEntityFunnelOp.AddEntityFunnelMonitorMappings: ...
+    @property
+    def remove_entity_funnel_monitor_mappings(self) -> global___UpdateEntityFunnelOp.RemoveEntityFunnelMonitorMappings: ...
+    def __init__(
+        self,
+        *,
+        op: global___UpdateEntityFunnelOp.Op.ValueType = ...,
+        update_entity_funnel_name: global___UpdateEntityFunnelOp.UpdateEntityFunnelName | None = ...,
+        update_entity_funnel_status: global___UpdateEntityFunnelOp.UpdateEntityFunnelStatus | None = ...,
+        update_entity_funnel_monitor_mapping_status: global___UpdateEntityFunnelOp.UpdateEntityFunnelMonitorMappingStatus | None = ...,
+        add_entity_funnel_monitor_mappings: global___UpdateEntityFunnelOp.AddEntityFunnelMonitorMappings | None = ...,
+        remove_entity_funnel_monitor_mappings: global___UpdateEntityFunnelOp.RemoveEntityFunnelMonitorMappings | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["add_entity_funnel_monitor_mappings", b"add_entity_funnel_monitor_mappings", "remove_entity_funnel_monitor_mappings", b"remove_entity_funnel_monitor_mappings", "update", b"update", "update_entity_funnel_monitor_mapping_status", b"update_entity_funnel_monitor_mapping_status", "update_entity_funnel_name", b"update_entity_funnel_name", "update_entity_funnel_status", b"update_entity_funnel_status"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["add_entity_funnel_monitor_mappings", b"add_entity_funnel_monitor_mappings", "op", b"op", "remove_entity_funnel_monitor_mappings", b"remove_entity_funnel_monitor_mappings", "update", b"update", "update_entity_funnel_monitor_mapping_status", b"update_entity_funnel_monitor_mapping_status", "update_entity_funnel_name", b"update_entity_funnel_name", "update_entity_funnel_status", b"update_entity_funnel_status"]) -> None: ...
+    def WhichOneof(self, oneof_group: typing_extensions.Literal["update", b"update"]) -> typing_extensions.Literal["update_entity_funnel_name", "update_entity_funnel_status", "update_entity_funnel_monitor_mapping_status", "add_entity_funnel_monitor_mappings", "remove_entity_funnel_monitor_mappings"] | None: ...
+
+global___UpdateEntityFunnelOp = UpdateEntityFunnelOp

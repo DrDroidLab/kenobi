@@ -5,10 +5,11 @@ from django.conf import settings
 from django.db import transaction as dj_transaction, IntegrityError
 from google.protobuf.message import Message
 
-from event.models import Entity, EntityEventKeyMapping, Trigger, TriggerNotificationConfigMapping, Monitor
+from event.models import Entity, EntityEventKeyMapping, Trigger, TriggerNotificationConfigMapping, Monitor, \
+    EntityMonitorMapping
 from event.monitors_triggers_crud import process_trigger_filters
 from event.notification.notifications_crud import create_db_notifications
-from protos.event.entity_pb2 import UpdateEntityOp
+from protos.event.entity_pb2 import UpdateEntityOp, UpdateEntityFunnelOp
 from protos.event.monitor_pb2 import UpdateMonitorOp
 from protos.event.trigger_pb2 import UpdateTriggerOp, TriggerDefinition
 from utils.proto_utils import proto_to_dict
@@ -174,7 +175,7 @@ class MonitorUpdateProcessor(UpdateProcessorMixin):
         raise Exception(f"Monitor secondary key cannot be updated")
 
     @staticmethod
-    def update_monitor_status(elem: Monitor, update_op: UpdateTriggerOp.UpdateTriggerDefinition) -> Monitor:
+    def update_monitor_status(elem: Monitor, update_op: UpdateMonitorOp.UpdateMonitorStatus) -> Monitor:
         elem.is_active = update_op.is_active.value
         elem.save(update_fields=['is_active'])
         return elem
@@ -263,6 +264,116 @@ class MonitorTriggerUpdateProcessor(UpdateProcessorMixin):
         return elem
 
 
+class EntityFunnelUpdateProcessor(UpdateProcessorMixin):
+    update_op_cls = UpdateEntityFunnelOp
+
+    @staticmethod
+    def update_entity_funnel_name(elem: Entity, update_op: UpdateEntityFunnelOp.UpdateEntityFunnelName) -> Entity:
+        if not update_op.name.value:
+            raise Exception(f"New entity name missing for update entity funnel name op")
+
+        if update_op.name.value == elem.name:
+            return elem
+        elem.name = update_op.name.value
+        try:
+            elem.save(update_fields=['name'])
+        except IntegrityError as ex:
+            raise Exception(f"Entity name {update_op.name.value} already exists")
+        return elem
+
+    @staticmethod
+    def update_entity_funnel_status(elem: Entity, update_op: UpdateEntityFunnelOp.UpdateEntityFunnelStatus) -> Entity:
+        elem.is_active = update_op.is_active.value
+        elem.save(update_fields=['is_active'])
+        return elem
+
+    @staticmethod
+    def update_entity_funnel_monitor_mapping_status(elem: Entity,
+                                                    update_op: UpdateEntityFunnelOp.UpdateEntityFunnelMonitorMappingStatus) -> Entity:
+        if not update_op.entity_funnel_monitor_mapping_id.value:
+            raise Exception(f"Entity funnel monitor mapping id missing for update key status op")
+
+        entity_funnel_monitor_mapping_id: int = update_op.entity_event_key_mapping_id.value
+
+        qs = elem.entitymonitormapping_set.filter(id=entity_funnel_monitor_mapping_id)
+        if not qs.exists():
+            raise Exception(f"Entity monitor mapping id {entity_funnel_monitor_mapping_id} not found")
+
+        entity_funnel_monitor_mapping: EntityMonitorMapping = qs.first()
+        entity_funnel_monitor_mapping.is_active = update_op.is_active.value
+        entity_funnel_monitor_mapping.save(update_fields=['is_active'])
+
+        monitor = entity_funnel_monitor_mapping.monitor
+        if not elem.entitymonitormapping_set.filter(monitor=monitor).exclude(entity=elem).exists():
+            if monitor.is_generated:
+                monitor.is_active = False
+                monitor.save(update_fields=['is_active'])
+
+        return elem
+
+    @staticmethod
+    def add_entity_funnel_monitor_mappings(elem: Entity,
+                                           update_op: UpdateEntityFunnelOp.AddEntityFunnelMonitorMappings) -> Entity:
+        monitor_ids: List[int] = update_op.monitor_ids
+        if not monitor_ids:
+            raise Exception(f"monitor ids missing for add entity event key mapping op")
+
+        if len(monitor_ids) != elem.account.monitor_set.filter(id__in=monitor_ids).count():
+            raise Exception(f"Invalid monitor ids for add entity funnel monitor mapping op")
+
+        monitors = elem.account.monitor_set.filter(id__in=monitor_ids)
+        for monitor in monitors:
+            if not monitor.is_active:
+                monitor.is_active = True
+                update_fields = ['is_active']
+                if not monitor.is_generated:
+                    monitor.is_generated = True
+                    update_fields.append('is_generated')
+                monitor.save(update_fields=update_fields)
+
+        emms = [
+            EntityMonitorMapping(
+                account=elem.account, entity=elem, monitor_id=monitor_id
+            ) for monitor_id in monitor_ids
+        ]
+
+        if emms:
+            EntityMonitorMapping.objects.bulk_create(
+                emms,
+                ignore_conflicts=True,
+                batch_size=25
+            )
+
+        return elem
+
+    @staticmethod
+    def remove_entity_funnel_monitor_mappings(elem: Entity,
+                                              update_op: UpdateEntityFunnelOp.RemoveEntityFunnelMonitorMappings) -> Entity:
+        entity_monitor_mapping_ids: List[int] = update_op.entity_funnel_monitor_mapping_ids
+        if not entity_monitor_mapping_ids:
+            raise Exception(f"Entity funnel monitor mapping missing for remove entity event key mapping op")
+
+        qs = elem.entitymonitormapping_set.filter(id__in=entity_monitor_mapping_ids)
+        qs = qs.select_related('monitor')
+        if len(entity_monitor_mapping_ids) != qs.count():
+            raise Exception(f"Invalid entity funnel monitor mapping for remove entity monitor mapping op")
+
+        for entity_monitor_mapping in qs:
+            if entity_monitor_mapping.is_active:
+                entity_monitor_mapping.is_active = False
+                entity_monitor_mapping.save(update_fields=['is_active'])
+            monitor = entity_monitor_mapping.monitor
+            if not elem.account.entitymonitormapping_set.filter(monitor=monitor, is_active=True).exclude(
+                    entity=elem).exists() and \
+                    not elem.account.trigger_set.filter(monitor=monitor, is_active=True).exists() \
+                    and monitor.is_generated:
+                monitor.is_active = False
+                monitor.save(update_fields=['is_active'])
+
+        return elem
+
+
 entity_update_processor = EntityUpdateProcessor()
 monitor_update_processor = MonitorUpdateProcessor()
 monitor_trigger_update_processor = MonitorTriggerUpdateProcessor()
+entity_funnel_update_processor = EntityFunnelUpdateProcessor()

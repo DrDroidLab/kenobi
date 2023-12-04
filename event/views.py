@@ -2051,7 +2051,7 @@ def funnel_drop_off_distribution_get_v2(request_message: GetFunnelDropOffRequest
 
     return GetFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
                                                 funnel_event_type_distribution=result_set,
-                                                previous_node_count=len(start_event_type_event_count))
+                                                previous_node_count=start_event_type_event_count)
 
 
 @web_api(GetFunnelDropOffRequest)

@@ -14,7 +14,6 @@ from management.models import PeriodicTaskStatus
 from management.tasks_crud import get_task_run_for_task_account_status
 from protos.event.entity_pb2 import EntityPartial, Entity as EntityProto, WorkflowView
 from protos.event.panel_pb2 import FunnelPanel, PanelV1, PanelData
-from protos.event.monitor_pb2 import MonitorTransaction as MonitorTransactionProto
 from prototype.utils.timerange import DateTimeRange, filter_dtr
 from utils.proto_utils import proto_to_dict
 
@@ -235,23 +234,21 @@ def entity_funnels_get(scope: Account, dtr: DateTimeRange, entity_funnel_name: s
             unique_transactions_set = MonitorTransactions.objects.filter(account_id=account_id).filter(
                 monitor_id=monitor['monitor_id']).filter(
                 event_type_id=monitor['monitor__primary_key__event_type_id']).filter(
-                transaction__in=unique_transactions_set)
-            unique_transactions_set = unique_transactions_set.values_list('transaction', flat=True).distinct()
+                transaction__in=unique_transactions_set).values_list('transaction', flat=True).distinct()
 
-        monitor_transactions = MonitorTransactions.objects.filter(account_id=account_id).filter(
-            event_timestamp__gte=dtr.time_geq).filter(monitor_id=monitor['monitor_id']).filter(
-            monitor_transaction_event_type=MonitorTransactionProto.MonitorTransactionEventType.PRIMARY).filter(
-            transaction__in=unique_transactions_set).values('monitor_id').annotate(
-            transaction_count=Count('transaction', distinct=True))
+        primary_node_transaction_count = unique_transactions_set.count()
 
-        monitor_transactions_finished = MonitorTransactions.objects.filter(account_id=account_id).filter(
+        monitor_transactions_finished_qs = MonitorTransactions.objects.filter(account_id=account_id).filter(
             event_timestamp__gte=dtr.time_geq).filter(monitor_id=monitor['monitor_id']).filter(
-            monitor_transaction_event_type=MonitorTransactionProto.MonitorTransactionEventType.SECONDARY).filter(
-            transaction__in=unique_transactions_set).values('monitor_id').annotate(
+            event_type_id=monitor['monitor__secondary_key__event_type_id']).filter(
+            transaction__in=unique_transactions_set)
+
+        monitor_transactions_finished = monitor_transactions_finished_qs.values('monitor_id').annotate(
             avg_duration=Avg('transaction_time')).annotate(
             completed_transaction_count=Count('transaction', distinct=True))
 
-        primary_node_transaction_count = monitor_transactions[0]['transaction_count'] if monitor_transactions else 0
+        unique_transactions_set = monitor_transactions_finished_qs.values_list('transaction', flat=True).distinct()
+
         secondary_node_transaction_count = monitor_transactions_finished[0].get('completed_transaction_count', 0) if \
             monitor_transactions_finished else 0
         avg_duration = monitor_transactions_finished[0].get('avg_duration', 0) if monitor_transactions_finished else 0

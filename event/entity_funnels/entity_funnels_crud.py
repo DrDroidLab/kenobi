@@ -389,11 +389,15 @@ def entity_funnels_drop_off_get(scope: Account, dtr: DateTimeRange, entity_funne
             unique_transactions_set = MonitorTransactions.objects.filter(account_id=account_id).filter(
                 monitor_id=monitor['monitor_id']).filter(
                 event_type_id=monitor['monitor__primary_key__event_type_id']).filter(
-                transaction__in=unique_transactions_set)
-            unique_transactions_set = unique_transactions_set.values_list('transaction', flat=True).distinct()
+                transaction__in=unique_transactions_set).values_list('transaction', flat=True).distinct()
 
         if monitor['monitor_id'] == selected_drop_off_monitor['monitor_id']:
             break
+
+        unique_transactions_set = MonitorTransactions.objects.filter(account_id=account_id).filter(
+            event_timestamp__gte=dtr.time_geq).filter(monitor_id=monitor['monitor_id']).filter(
+            event_type_id=monitor['monitor__secondary_key__event_type_id']).filter(
+            transaction__in=unique_transactions_set).values_list('transaction', flat=True).distinct()
 
     monitor_transactions_finished = MonitorTransactions.objects.filter(account_id=account_id).filter(
         monitor_id=selected_drop_off_monitor['monitor_id']).filter(
@@ -401,40 +405,32 @@ def entity_funnels_drop_off_get(scope: Account, dtr: DateTimeRange, entity_funne
         transaction__in=unique_transactions_set).values_list('transaction', flat=True).distinct()
 
     start_event_type_event_count = unique_transactions_set.count()
-    dropped_funnel_records = list(unique_transactions_set.difference(monitor_transactions_finished))
+    dropped_funnel_records = unique_transactions_set.difference(monitor_transactions_finished)
     if not dropped_funnel_records:
-        return None
+        return None, start_event_type_event_count
     else:
-        dropped_funnel_records_str = ', '.join(f"'{x}'" for x in list(dropped_funnel_records))
-        grouped_by_eventType_dropped_records = f"SELECT id, processed_kvs.{event_key_name} as p_e_id, " \
-                                               f"event_type_id, event_type_name, ROW_NUMBER() OVER " \
-                                               f"(PARTITION BY processed_kvs.{event_key_name} ORDER BY timestamp DESC) " \
-                                               f"AS outer_row_num FROM (SELECT id, processed_kvs.{event_key_name}, " \
-                                               f"event_type_id, event_type_name, timestamp FROM " \
-                                               f"(SELECT id, processed_kvs.{event_key_name}, event_type_id, " \
-                                               f"event_type_name, timestamp, ROW_NUMBER() OVER " \
-                                               f"(PARTITION BY processed_kvs.{event_key_name}, event_type_name " \
-                                               f"ORDER BY timestamp DESC) AS row_num FROM events where " \
-                                               f"processed_kvs.{event_key_name} in ({dropped_funnel_records_str}) " \
-                                               f"and timestamp >= '{dtr.to_tr_str()[0]}' and account_id = {account_id}) " \
-                                               f"WHERE row_num = 1)"
-        funnel_event_type_distribution = {}
-        qs = Events.objects.raw(grouped_by_eventType_dropped_records)
+        qs = Events.objects.filter(account_id=account_id).annotate(
+            event_attribute=F('processed_kvs__{}'.format(event_key_name))).filter(
+            event_attribute__in=dropped_funnel_records).filter(timestamp__gte=dtr.time_geq).order_by(
+            'event_attribute', '-timestamp').distinct('event_type_name', 'event_attribute').values('event_type_id',
+                                                                                                   'event_type_name',
+                                                                                                   'event_attribute')
         row = 0
+        funnel_event_type_distribution = {}
         end_of_rows = False
         while row < len(qs):
             if end_of_rows:
                 break
             curr_pkv_event_types = []
             start_event_type_id_found = False
-            current_record_id = qs[row].p_e_id
+            current_record_id = qs[row]['event_attribute']
             for i in range(row, len(qs)):
-                if qs[i].p_e_id != current_record_id:
+                if qs[i]['event_attribute'] != current_record_id:
                     row = i
                     break
                 if not start_event_type_id_found:
-                    curr_pkv_event_types.append(qs[i].event_type_name)
-                if qs[i].event_type_id == start_event_type_id:
+                    curr_pkv_event_types.append(qs[i]['event_type_name'])
+                if qs[i]['event_type_id'] == start_event_type_id:
                     start_event_type_id_found = True
                     if len(curr_pkv_event_types) > 0:
                         curr_pkv_event_types.reverse()
@@ -524,51 +520,47 @@ def entity_funnels_drop_off_download(scope: Account, dtr: DateTimeRange, entity_
             unique_transactions_set = MonitorTransactions.objects.filter(account_id=account_id).filter(
                 monitor_id=monitor['monitor_id']).filter(
                 event_type_id=monitor['monitor__primary_key__event_type_id']).filter(
-                transaction__in=unique_transactions_set)
-            unique_transactions_set = unique_transactions_set.values_list('transaction', flat=True).distinct()
+                transaction__in=unique_transactions_set).values_list('transaction', flat=True).distinct()
 
         if monitor['monitor_id'] == selected_drop_off_monitor['monitor_id']:
             break
+
+        unique_transactions_set = MonitorTransactions.objects.filter(account_id=account_id).filter(
+            event_timestamp__gte=dtr.time_geq).filter(monitor_id=monitor['monitor_id']).filter(
+            event_type_id=monitor['monitor__secondary_key__event_type_id']).filter(
+            transaction__in=unique_transactions_set).values_list('transaction', flat=True).distinct()
 
     monitor_transactions_finished = MonitorTransactions.objects.filter(account_id=account_id).filter(
         monitor_id=selected_drop_off_monitor['monitor_id']).filter(
         event_type_id=selected_drop_off_monitor['monitor__secondary_key__event_type_id']).filter(
         transaction__in=unique_transactions_set).values_list('transaction', flat=True).distinct()
 
-    dropped_funnel_records = list(unique_transactions_set.difference(monitor_transactions_finished))
+    dropped_funnel_records = unique_transactions_set.difference(monitor_transactions_finished)
     if not dropped_funnel_records:
         return None
     else:
-        dropped_funnel_records_str = ', '.join(f"'{x}'" for x in list(dropped_funnel_records))
-        grouped_by_eventType_dropped_records = f"SELECT id, processed_kvs.{event_key_name} as p_e_id, " \
-                                               f"event_type_id, event_type_name, ROW_NUMBER() OVER " \
-                                               f"(PARTITION BY processed_kvs.{event_key_name} ORDER BY timestamp DESC) " \
-                                               f"AS outer_row_num FROM (SELECT id, processed_kvs.{event_key_name}, " \
-                                               f"event_type_id, event_type_name, timestamp FROM " \
-                                               f"(SELECT id, processed_kvs.{event_key_name}, event_type_id, " \
-                                               f"event_type_name, timestamp, ROW_NUMBER() OVER " \
-                                               f"(PARTITION BY processed_kvs.{event_key_name}, event_type_name " \
-                                               f"ORDER BY timestamp DESC) AS row_num FROM events where " \
-                                               f"processed_kvs.{event_key_name} in ({dropped_funnel_records_str}) " \
-                                               f"and timestamp >= '{dtr.to_tr_str()[0]}' and account_id = {account_id}) " \
-                                               f"WHERE row_num = 1)"
-        qs = Events.objects.raw(grouped_by_eventType_dropped_records)
-        csv_data = [[event_key_name, 'path']]
+        qs = Events.objects.filter(account_id=account_id).annotate(
+            event_attribute=F('processed_kvs__{}'.format(event_key_name))).filter(
+            event_attribute__in=dropped_funnel_records).filter(timestamp__gte=dtr.time_geq).order_by(
+            'event_attribute', '-timestamp').distinct('event_type_name', 'event_attribute').values('event_type_id',
+                                                                                                   'event_type_name',
+                                                                                                   'event_attribute')
         row = 0
         end_of_rows = False
+        csv_data = [[event_key_name, 'path']]
         while row < len(qs):
             if end_of_rows:
                 break
             curr_pkv_event_types = []
             start_event_type_id_found = False
-            current_record_id = qs[row].p_e_id
+            current_record_id = qs[row]['event_attribute']
             for i in range(row, len(qs)):
-                if qs[i].p_e_id != current_record_id:
+                if qs[i]['event_attribute'] != current_record_id:
                     row = i
                     break
                 if not start_event_type_id_found:
-                    curr_pkv_event_types.append(qs[i].event_type_name)
-                if qs[i].event_type_id == start_event_type_id:
+                    curr_pkv_event_types.append(qs[i]['event_type_name'])
+                if qs[i]['event_type_id'] == start_event_type_id:
                     start_event_type_id_found = True
                     if len(curr_pkv_event_types) > 0:
                         curr_pkv_event_types.reverse()

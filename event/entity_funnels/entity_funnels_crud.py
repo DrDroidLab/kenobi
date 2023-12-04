@@ -184,7 +184,8 @@ def entity_funnels_get(scope: Account, dtr: DateTimeRange, entity_funnel_name: s
         raise EntityFunnelCrudNotFoundException(
             f'Incorrect Panel Payload: Active Entity with name {entity_funnel_name} does not exist')
 
-    entity_monitor = scope.entitymonitormapping_set.filter(entity=db_entity_funnel, is_active=True)
+    entity_monitor = scope.entitymonitormapping_set.filter(entity=db_entity_funnel, is_active=True).order_by(
+        'created_at')
     entity_monitor = entity_monitor.prefetch_related('monitor').values('monitor_id',
                                                                        'monitor__primary_key__name',
                                                                        'monitor__primary_key__event_type_id',

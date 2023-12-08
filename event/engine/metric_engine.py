@@ -73,7 +73,8 @@ def process_workflow_monitor_metric_expression(account, metric_expr, dtr: DateTi
     if aggr_type == 'percent':
         if metric_type == 'active':
             query = "SELECT toStartOfInterval(C.p_timestamp, INTERVAL {} minute) AS interval_start, (SUM(C.result) * 100.0 / COUNT(*)) AS id FROM (select IF(A.p_j_key = B.s_j_key, 0, IF(A.p_j_key != B.s_j_key, 1, 0)) AS result, A.p_timestamp from (select processed_kvs.{} as p_j_key, timestamp as p_timestamp from events where account_id = {} and event_type_name = '{}' and timestamp between '{}' and '{}' {}) A left join (select processed_kvs.{} as s_j_key from events where account_id = {} and event_type_name = '{}' and timestamp >= '{}') B on A.p_j_key = B.s_j_key) C GROUP BY interval_start ORDER BY interval_start".format(
-                resolution, joining_key, account_id, primary_event_name, start_time, end_time, filter_clause, joining_key,
+                resolution, joining_key, account_id, primary_event_name, start_time, end_time, filter_clause,
+                joining_key,
                 account_id, secondary_event_name, start_time
             )
         if metric_type == 'finished':
@@ -96,15 +97,13 @@ def process_workflow_monitor_metric_expression(account, metric_expr, dtr: DateTi
 
     for d in metric_data:
         metric_timeseries_data.append({
-            'timestamp': int(d.interval_start.timestamp()*1000),
+            'timestamp': int(d.interval_start.timestamp() * 1000),
             'value': d.id
         })
     return metric_timeseries_data
 
 
-
 def process_workflow_metric_expression(account, metric_expr, dtr: DateTimeRange):
-
     tr = dtr.to_tr()
     time_duration = tr.time_lt - tr.time_geq
 

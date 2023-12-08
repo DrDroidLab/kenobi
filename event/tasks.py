@@ -1,5 +1,5 @@
 import csv
-import datetime
+from datetime import datetime
 import json
 import time
 
@@ -20,18 +20,18 @@ from event.notification.notification_facade import notification_client
 from event.triggers.trigger_processor import process_trigger
 from event.triggers.entity_trigger_processor import process_trigger as process_entity_trigger
 from management.models import PeriodicTaskStatus
-from management.utils.celery_task_signal_utils import publish_pre_run_task, publish_post_run_task, publish_failure_task, \
-    get_or_create_task, check_scheduled_or_running_task_run_for_task, \
-    create_task_run
+from management.tasks_crud import get_or_create_task, check_scheduled_or_running_task_run_for_task, create_task_run
+from management.utils.celery_task_signal_utils import publish_pre_run_task, publish_post_run_task, publish_task_failure
 from protos.event.api_pb2 import GetEventExportQueryRequest
 from protos.event.base_pb2 import Context
 from protos.event.entity_pb2 import EntityTriggerDefinition
 from protos.event.query_base_pb2 import QueryRequest
 from protos.event.trigger_pb2 import TriggerDefinition, DelayedEventTrigger
 from protos.event.monitor_pb2 import MonitorTransaction as MonitorTransactionProto
-from prototype.db.decorator import use_read_replica
 from prototype.utils.timerange import filter_dtr, to_dtr, DateTimeRange
 from utils.proto_utils import dict_to_proto, get_value
+
+BACK_FILL_JOB_CONFIG = getattr(settings, 'BACK_FILL_JOB_CONFIG', {})
 
 
 def get_monitor_transaction_status(status):
@@ -87,7 +87,8 @@ def missing_event_trigger_cron(lookback_interval=None):
         # All Entity triggers
         triggers = ac.entitytrigger_set.filter(type=EntityTriggerDefinition.TriggerType.PER_EVENT).exclude(
             is_active=False).exclude(
-            entity__isnull=True).exclude(entity__is_active=False).values('id', 'type', 'rule_type', 'entity_id', 'config', 'name',
+            entity__isnull=True).exclude(entity__is_active=False).values('id', 'type', 'rule_type', 'entity_id',
+                                                                         'config', 'name',
                                                                          'generated_config',
                                                                          'entity__name')
 
@@ -117,8 +118,8 @@ def missing_event_trigger_cron(lookback_interval=None):
 @shared_task(max_retries=3)
 def evaluate_entity_event_level_triggers(account_id, trigger, time_lower_bound, time_upper_bound):
     ac: Account = Account.objects.get(id=account_id)
-    time_lower_bound_datetime = datetime.datetime.fromtimestamp(time_lower_bound, tz=pytz.utc)
-    time_upper_bound_datetime = datetime.datetime.fromtimestamp(time_upper_bound, tz=pytz.utc)
+    time_lower_bound_datetime = datetime.fromtimestamp(time_lower_bound, tz=pytz.utc)
+    time_upper_bound_datetime = datetime.fromtimestamp(time_upper_bound, tz=pytz.utc)
     alerts: [Alert] = process_entity_trigger(ac, trigger, time_lower_bound_datetime, time_upper_bound_datetime)
 
     notify(ac, trigger, alerts)
@@ -127,15 +128,15 @@ def evaluate_entity_event_level_triggers(account_id, trigger, time_lower_bound, 
 @shared_task(max_retries=3)
 def evaluate_missing_event_triggers_for(account_id, trigger, time_lower_bound, time_upper_bound):
     ac: Account = Account.objects.get(id=account_id)
-    time_lower_bound_datetime = datetime.datetime.fromtimestamp(time_lower_bound, tz=pytz.utc)
-    time_upper_bound_datetime = datetime.datetime.fromtimestamp(time_upper_bound, tz=pytz.utc)
+    time_lower_bound_datetime = datetime.fromtimestamp(time_lower_bound, tz=pytz.utc)
+    time_upper_bound_datetime = datetime.fromtimestamp(time_upper_bound, tz=pytz.utc)
     alerts: [Alert] = process_trigger(ac, trigger, time_lower_bound_datetime, time_upper_bound_datetime)
 
     notify(ac, trigger, alerts)
 
 
 missing_event_trigger_cron_task_prerun_notifier = publish_pre_run_task(evaluate_missing_event_triggers_for)
-missing_event_trigger_cron_task_failure_notifier = publish_failure_task(evaluate_missing_event_triggers_for)
+missing_event_trigger_cron_task_failure_notifier = publish_task_failure(evaluate_missing_event_triggers_for)
 missing_event_trigger_cron_task_postrun_notifier = publish_post_run_task(evaluate_missing_event_triggers_for)
 
 
@@ -181,9 +182,9 @@ def delayed_event_trigger_cron(lookback_interval=None):
                 continue
 
             # Avoid alert noise if alert already generated in the current resolution window
-            check_alert_time_lower_bound = datetime.datetime.fromtimestamp(current_time, tz=pytz.utc)
-            check_alert_time_upper_bound = datetime.datetime.fromtimestamp(current_time - trigger_resolution,
-                                                                           tz=pytz.utc)
+            check_alert_time_lower_bound = datetime.fromtimestamp(current_time, tz=pytz.utc)
+            check_alert_time_upper_bound = datetime.fromtimestamp(current_time - trigger_resolution,
+                                                                  tz=pytz.utc)
             if ac.alert_set.filter(trigger_id=trigger['id']).filter(
                     triggered_at__range=[check_alert_time_upper_bound, check_alert_time_lower_bound]).count() > 0:
                 create_task_run(task=saved_task, task_uuid=task_run_meta.task_id,
@@ -200,15 +201,15 @@ def delayed_event_trigger_cron(lookback_interval=None):
 @shared_task(max_retries=3)
 def evaluate_delayed_event_triggers_for(account_id, trigger, time_lower_bound, time_upper_bound):
     ac: Account = Account.objects.get(id=account_id)
-    time_lower_bound_datetime = datetime.datetime.fromtimestamp(time_lower_bound, tz=pytz.utc)
-    time_upper_bound_datetime = datetime.datetime.fromtimestamp(time_upper_bound, tz=pytz.utc)
+    time_lower_bound_datetime = datetime.fromtimestamp(time_lower_bound, tz=pytz.utc)
+    time_upper_bound_datetime = datetime.fromtimestamp(time_upper_bound, tz=pytz.utc)
     alerts: [Alert] = process_trigger(ac, trigger, time_lower_bound_datetime, time_upper_bound_datetime)
 
     notify(ac, trigger, alerts)
 
 
 delayed_event_trigger_cron_task_prerun_notifier = publish_pre_run_task(evaluate_delayed_event_triggers_for)
-delayed_event_trigger_cron_task_failure_notifier = publish_failure_task(evaluate_delayed_event_triggers_for)
+delayed_event_trigger_cron_task_failure_notifier = publish_task_failure(evaluate_delayed_event_triggers_for)
 delayed_event_trigger_cron_task_postrun_notifier = publish_post_run_task(evaluate_delayed_event_triggers_for)
 
 

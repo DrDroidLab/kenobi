@@ -942,3 +942,43 @@ message GetEntityFunnelResponse {
   Message message = 3;
   WorkflowView workflow_view = 4;
 }
+
+/////////////////////  Update Entity Funnel  /////////////////////
+message UpdateEntityFunnelRequest {
+  google.protobuf.UInt64Value entity_funnel_id = 1;
+  repeated UpdateEntityFunnelOp update_entity_funnel_ops = 2;
+}
+
+message UpdateEntityFunnelResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+}
+
+/////////////////////  Get Entity Funnel Drop Off  /////////////////////
+message GetEntityFunnelDropOffRequest {
+  Meta meta = 1;
+  string entity_funnel_name = 2;
+  string funnel_key_name = 3;
+  uint64 start_event_type_id = 4;
+  uint64 end_event_type_id = 5;
+  string filter_key_name = 6;
+  string filter_value = 7;
+}
+
+message GetEntityFunnelDropOffResponse {
+  Meta meta = 1;
+}
+
+message GetEntityFunnelDropOffDistributionResponse {
+
+  message FunnelEventTypeDistribution {
+    string event_type_name = 1;
+    uint64 count = 2;
+  }
+
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  uint64 previous_node_count = 4;
+  repeated FunnelEventTypeDistribution funnel_event_type_distribution = 5;
+}

@@ -1,4 +1,5 @@
 import json
+import logging
 import traceback
 import uuid
 from datetime import timedelta, datetime
@@ -32,8 +33,11 @@ from event.engine.metric_engine import process_metric_expressions, get_metric_op
 from event.engine.query_engine import global_event_search_engine, global_event_search_clickhouse_engine, \
     monitor_transaction_search_engine, \
     entity_instance_search_engine
-from event.entity_funnels_crud import entity_funnels_create, entity_funnels_get, EntityFunnelCrudNotFoundException, \
-    entity_funnels_get_clickhouse_events
+from event.entity_funnels.clickhouse_funnels_crud import entity_funnels_get_clickhouse_events, \
+    entity_funnels_get_clickhouse_drop_off_distribution, entity_funnels_get_clickhouse_drop_off_distribution_download, \
+    get_funnel_panel_data
+from event.entity_funnels.entity_funnels_crud import entity_funnels_create, entity_funnels_get, \
+    EntityFunnelCrudNotFoundException, entity_funnels_drop_off_get, entity_funnels_drop_off_download
 from event.models import is_transactional_key_type, Notification, Alert, is_filterable_key_type, \
     TRANSACTIONAL_KEY_TYPES, Entity, EntityEventKeyMapping, Trigger, MonitorTransactionStats, \
     MonitorTransactionEventMapping, EventKey, EntityTrigger, EntityTriggerNotificationConfigMapping
@@ -44,22 +48,23 @@ from event.notification.notifications_crud import create_db_notifications
 from event.processors.process_events_payload import process_account_events_payload
 from event.tasks import export_task
 from event.triggers.trigger_processor import get_default_trigger_options
-from event.update_processor import entity_update_processor, monitor_trigger_update_processor
+from event.update_processor import entity_update_processor, monitor_trigger_update_processor, \
+    entity_funnel_update_processor
 from event.workflows.builder import WorkflowBuilder
-from event.workflows.funnel import Funnel
 from event.workflows.graph import Graph, NewGraph
 from protos.event.alert_pb2 import AlertDetail
 from protos.event.api_pb2 import *
 from protos.event.base_pb2 import TimeRange, Page, EventKey as EventKeyProto, Event as EventProto, EventTypePartial, \
     EventTypeStats, EventTypeSummary, Context
 from protos.event.engine_options_pb2 import GlobalQueryOptions
+from protos.event.entity_pb2 import UpdateEntityFunnelOp, Entity as EntityProto
 from protos.event.timeline_pb2 import EntityInstanceTimelineRecord
 from protos.event.monitor_pb2 import MonitorPartial, MonitorTransactionPartial, MonitorStats, \
     MonitorTransaction as MonitorTransactionProto
 from protos.event.notification_pb2 import NotificationConfig
 from protos.event.options_pb2 import MonitorTriggerOptions
 from protos.event.options_pb2 import TriggerOption, MonitorOptions, NotificationOption, EntityOptions
-from protos.event.panel_pb2 import PanelV1, DashboardV1, ComplexTableData
+from protos.event.panel_pb2 import PanelV1, DashboardV1, ComplexTableData, PanelData
 from protos.event.query_base_pb2 import QueryRequest
 from protos.event.schema_pb2 import IngestionEventPayloadRequest, IngestionEventPayloadResponse, IngestionEventPayload, \
     KeyValue, IngestionEvent, Value as ValueProto, AWSKinesisIngestionStreamPayloadRequest, \
@@ -75,13 +80,15 @@ from prototype.utils.decorators import account_data_api, web_api, api_auth_check
     ProtoJsonResponse
 from prototype.utils.meta import get_meta
 from prototype.utils.queryset import filter_time_range, filter_page
-from prototype.utils.timerange import to_dtr, DateTimeRange, to_tr, filter_dtr, to_str
+from prototype.utils.timerange import to_dtr, DateTimeRange, to_tr, filter_dtr
 from prototype.utils.utils import current_milli_time
 from utils.proto_utils import proto_to_dict, dict_to_proto
 
 from event.clickhouse.models import Events
 
 EVENT_TIME_FIELD = 'timestamp'
+
+logger = logging.getLogger(__name__)
 
 
 def infer_value_type(v):
@@ -446,7 +453,7 @@ def monitors_create(request_message: CreateOrUpdateMonitorRequest) -> Union[
     secondary_event_key_id = request_message.secondary_event_key_id
 
     db_monitor, created, error = create_monitors(account, monitor_name, primary_event_key_id, secondary_event_key_id)
-    if error:
+    if error and not created:
         if db_monitor:
             return CreateOrUpdateMonitorResponse(success=BoolValue(value=False),
                                                  message=Message(title="Monitor Creation Failure",
@@ -985,7 +992,8 @@ def metrics(request_message: GetMetricRequest) -> Union[GetMetricResponse, HttpR
         metric_data = process_metric_expressions(account, request_message.context, metric_expressions, dtr)
         return GetMetricResponse(success=BoolValue(value=True), metric_data=metric_data)
     except Exception as e:
-        return GetMetricResponse(success=BoolValue(value=False), message=Message(description='The metric expression is invalid. Try changing the aggregation data or grouping keys'))
+        return GetMetricResponse(success=BoolValue(value=False), message=Message(
+            description='The metric expression is invalid. Try changing the aggregation data or grouping keys'))
 
 
 @web_api(GetPanelsV1Request)
@@ -1076,8 +1084,21 @@ def dashboard_v1_create_or_update(request_message: CreateOrUpdateDashboardV1Requ
         if not panel.meta_info or not panel.meta_info.name:
             return CreateOrUpdateDashboardV1Response(success=BoolValue(value=False))
         panel_names.append(panel.meta_info.name)
-        GLOBAL_PANEL_CACHE.create_or_update(account_id=account.id, name=panel.meta_info.name,
-                                            panel=proto_to_dict(panel))
+        if panel.data and panel.data.type == PanelData.PanelDataType.FUNNEL:
+            try:
+                entity_funnel, error = entity_funnels_create(account, panel)
+                if error:
+                    return CreateOrUpdateDashboardV1Response(success=BoolValue(value=False),
+                                                             message=Message(title='Error creating entity funnel',
+                                                                             description=error))
+            except Exception as ex:
+                logger.error('Error creating entity funnel', exc_info=True)
+                return CreateOrUpdateDashboardV1Response(success=BoolValue(value=False),
+                                                         message=Message(title='Error creating entity funnel',
+                                                                         description=str(ex)))
+        else:
+            GLOBAL_PANEL_CACHE.create_or_update(account_id=account.id, name=panel.meta_info.name,
+                                                panel=proto_to_dict(panel))
 
     dashboard_dict = proto_to_dict(dashboard)
     dashboard_dict['panels'] = panel_names
@@ -1095,6 +1116,26 @@ def dashboards_v1_delete(request_message: DeleteDashboardV1Request) -> Union[
 
     if not name:
         return DeletePanelV1Response(success=BoolValue(value=False))
+
+    if account.entity_set.filter(name=name, type=EntityProto.Type.FUNNEL).exists():
+        try:
+            entity_funnel = account.entity_set.get(name=name, type=EntityProto.Type.FUNNEL)
+            entity_funnel_monitor_mapping_ids = list(
+                account.entitymonitormapping_set.filter(entity=entity_funnel).filter(
+                    is_active=True).values_list('id', flat=True))
+            entity_funnel_update_ops: [UpdateEntityFunnelOp] = [
+                UpdateEntityFunnelOp(op=UpdateEntityFunnelOp.Op.REMOVE_ENTITY_FUNNEL_MONITOR_MAPPINGS,
+                                     remove_entity_funnel_monitor_mappings=UpdateEntityFunnelOp.RemoveEntityFunnelMonitorMappings(
+                                         entity_funnel_monitor_mapping_ids=entity_funnel_monitor_mapping_ids)),
+                UpdateEntityFunnelOp(op=UpdateEntityFunnelOp.Op.UPDATE_ENTITY_FUNNEL_STATUS,
+                                     update_entity_funnel_status=UpdateEntityFunnelOp.UpdateEntityFunnelStatus(
+                                         is_active=BoolValue(value=False)))
+            ]
+            entity_funnel_update_processor.update(entity_funnel, entity_funnel_update_ops)
+        except Exception as ex:
+            logger.error('Error deleting entity funnel', exc_info=True)
+            return DeleteDashboardV1Response(success=BoolValue(value=False),
+                                             message=Message(title='Error deleting entity funnel', description=str(ex)))
 
     GLOBAL_DASHBOARD_CACHE.delete(account_id=account.id, name=name)
     return DeleteDashboardV1Response(success=BoolValue(value=True))
@@ -1975,91 +2016,10 @@ def funnel_get_v2(request_message: GetFunnelRequest) -> Union[
     filter_key_name = request_message.filter_key_name
     filter_value = request_message.filter_value
 
-    events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}' ) order by timestamp asc, created_at asc) group by e_id;".format(
-        event_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id, dtr.to_tr_str()[0],
-        to_str(datetime.now()), event_key_name, event_key_name, funnel_event_type_ids[0], account.id,
-        dtr.to_tr_str()[0],
-        dtr.to_tr_str()[1]
-    )
+    ordered_funnel_data = entity_funnels_get_clickhouse_events(account, dtr, funnel_event_type_ids, event_key_name,
+                                                               filter_key_name, filter_value)
 
-    if filter_key_name and filter_value:
-        events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, groupArray(e_filter_value) as filter_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id, processed_kvs.{} as e_filter_value from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}') order by timestamp asc, created_at asc) group by e_id;".format(
-            event_key_name, filter_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id,
-            dtr.to_tr_str()[0],
-            to_str(datetime.now()), event_key_name, event_key_name, funnel_event_type_ids[0], account.id,
-            dtr.to_tr_str()[0],
-            dtr.to_tr_str()[1]
-        )
-
-    qs = Events.objects.raw(events_group_query)
-    events_group_set = list(qs)
-
-    f = Funnel()
-
-    for grouped_event in events_group_set:
-        f.add_to_node_map(grouped_event, filter_key_name=filter_key_name, filter_value=filter_value)
-
-    ordered_funnel_data = f.get_ordered_funnel_data(funnel_event_type_ids)
     return GetFunnelResponse(meta=get_meta(tr=dtr.to_tr()), workflow_view=ordered_funnel_data)
-
-
-@web_api(GetFunnelDropOffRequest)
-@use_read_replica
-def funnel_drop_off_distribution_get(request_message: GetFunnelDropOffRequest) -> Union[
-    GetFunnelDropOffDistributionResponse, HttpResponse]:
-    account: Account = get_request_account()
-    dtr: DateTimeRange = to_dtr(request_message.meta.time_range)
-
-    funnel_event_type_ids = request_message.funnel_event_type_ids
-    funnel_key_name = request_message.funnel_key_name
-    start_event_type_id = request_message.start_event_type_id
-    end_event_type_id = request_message.end_event_type_id
-
-    filter_key_name = request_message.filter_key_name
-    filter_value = request_message.filter_value
-
-    events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}' ) order by timestamp asc, created_at asc) group by e_id;".format(
-        funnel_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id, dtr.to_tr_str()[0],
-        to_str(datetime.now()), funnel_key_name, funnel_key_name, funnel_event_type_ids[0], account.id,
-        dtr.to_tr_str()[0],
-        dtr.to_tr_str()[1]
-    )
-
-    if filter_key_name and filter_value:
-        events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, groupArray(e_filter_value) as filter_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id, processed_kvs.{} as e_filter_value from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}') order by timestamp asc, created_at asc) group by e_id;".format(
-            funnel_key_name, filter_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id,
-            dtr.to_tr_str()[0],
-            to_str(datetime.now()), funnel_key_name, funnel_key_name, funnel_event_type_ids[0], account.id,
-            dtr.to_tr_str()[0],
-            dtr.to_tr_str()[1]
-        )
-
-    qs = Events.objects.raw(events_group_query)
-    events_group_set = list(qs)
-
-    f = Funnel()
-
-    for grouped_event in events_group_set:
-        f.add_to_node_map(grouped_event, filter_key_name=filter_key_name, filter_value=filter_value)
-
-    dropped_funnel_records, start_event_type_event_count = f.get_funnel_drop_records(funnel_event_type_ids,
-                                                                                     start_event_type_id,
-                                                                                     end_event_type_id)
-    if not dropped_funnel_records:
-        return GetFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()))
-    else:
-        dropped_funnel_records_str = ', '.join(f"'{x}'" for x in list(dropped_funnel_records))
-        grouped_by_eventType_dropped_records = f"SELECT count(processed_kvs.{funnel_key_name}) as count, event_type_name as id FROM (SELECT processed_kvs.{funnel_key_name},timestamp, event_type_name, ROW_NUMBER() OVER (PARTITION BY processed_kvs.{funnel_key_name} ORDER BY timestamp DESC) AS row_num FROM events where processed_kvs.{funnel_key_name} in ({dropped_funnel_records_str}) and timestamp >= '{dtr.to_tr_str()[0]}' and account_id = {account.id}) WHERE row_num = 1 group by event_type_name"
-        funnel_event_type_distribution = []
-        qs = Events.objects.raw(grouped_by_eventType_dropped_records)
-        for row in qs:
-            funnel_event_type_distribution_object = GetFunnelDropOffDistributionResponse.FunnelEventTypeDistribution(
-                event_type_name=row.id, count=row.count)
-            funnel_event_type_distribution.append(funnel_event_type_distribution_object)
-
-        return GetFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
-                                                    funnel_event_type_distribution=funnel_event_type_distribution,
-                                                    previous_node_count=len(start_event_type_event_count))
 
 
 @web_api(GetFunnelDropOffRequest)
@@ -2077,77 +2037,21 @@ def funnel_drop_off_distribution_get_v2(request_message: GetFunnelDropOffRequest
     filter_key_name = request_message.filter_key_name
     filter_value = request_message.filter_value
 
-    events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}' ) order by timestamp asc, created_at asc) group by e_id;".format(
-        funnel_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id, dtr.to_tr_str()[0],
-        to_str(datetime.now()), funnel_key_name, funnel_key_name, funnel_event_type_ids[0], account.id,
-        dtr.to_tr_str()[0],
-        dtr.to_tr_str()[1]
-    )
-
-    if filter_key_name and filter_value:
-        events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, groupArray(e_filter_value) as filter_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id, processed_kvs.{} as e_filter_value from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}') order by timestamp asc, created_at asc) group by e_id;".format(
-            funnel_key_name, filter_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id,
-            dtr.to_tr_str()[0],
-            to_str(datetime.now()), funnel_key_name, funnel_key_name, funnel_event_type_ids[0], account.id,
-            dtr.to_tr_str()[0],
-            dtr.to_tr_str()[1]
-        )
-
-    qs = Events.objects.raw(events_group_query)
-    events_group_set = list(qs)
-
-    f = Funnel()
-
-    for grouped_event in events_group_set:
-        f.add_to_node_map(grouped_event, filter_key_name=filter_key_name, filter_value=filter_value)
-
-    dropped_funnel_records, start_event_type_event_count = f.get_funnel_drop_records(funnel_event_type_ids,
-                                                                                     start_event_type_id,
-                                                                                     end_event_type_id)
-    if not dropped_funnel_records:
+    funnel_event_type_distribution, start_event_type_event_count = entity_funnels_get_clickhouse_drop_off_distribution(
+        account, dtr, funnel_event_type_ids, funnel_key_name, start_event_type_id, end_event_type_id, filter_key_name,
+        filter_value)
+    if not funnel_event_type_distribution:
         return GetFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()))
-    else:
-        dropped_funnel_records_str = ', '.join(f"'{x}'" for x in list(dropped_funnel_records))
-        grouped_by_eventType_dropped_records = f"SELECT id, processed_kvs.{funnel_key_name} as p_e_id, event_type_id, event_type_name, ROW_NUMBER() OVER (PARTITION BY processed_kvs.{funnel_key_name} ORDER BY timestamp DESC) AS outer_row_num FROM (SELECT id, processed_kvs.{funnel_key_name}, event_type_id, event_type_name, timestamp FROM (SELECT id, processed_kvs.{funnel_key_name}, event_type_id, event_type_name, timestamp, ROW_NUMBER() OVER (PARTITION BY processed_kvs.{funnel_key_name}, event_type_name ORDER BY timestamp DESC) AS row_num FROM events where processed_kvs.{funnel_key_name} in ({dropped_funnel_records_str}) and timestamp >= '{dtr.to_tr_str()[0]}' and account_id = {account.id}) WHERE row_num = 1)"
-        funnel_event_type_distribution = {}
-        qs = Events.objects.raw(grouped_by_eventType_dropped_records)
-        row = 0
-        end_of_rows = False
-        while row < len(qs):
-            if end_of_rows:
-                break
-            curr_pkv_event_types = []
-            start_event_type_id_found = False
-            current_record_id = qs[row].p_e_id
-            for i in range(row, len(qs)):
-                if qs[i].p_e_id != current_record_id:
-                    row = i
-                    break
-                if not start_event_type_id_found:
-                    curr_pkv_event_types.append(qs[i].event_type_name)
-                if qs[i].event_type_id == start_event_type_id:
-                    start_event_type_id_found = True
-                    if len(curr_pkv_event_types) > 0:
-                        curr_pkv_event_types.reverse()
-                        ev_type_key = curr_pkv_event_types[0]
-                        if len(curr_pkv_event_types) > 1:
-                            ev_type_key = ' -> '.join([str(ev_type) for ev_type in curr_pkv_event_types])
-                        if ev_type_key in funnel_event_type_distribution:
-                            funnel_event_type_distribution[ev_type_key] += 1
-                        else:
-                            funnel_event_type_distribution[ev_type_key] = 1
-                if i >= len(qs) - 1:
-                    end_of_rows = True
-                    break
-        result_set = []
-        for k, v in funnel_event_type_distribution.items():
-            funnel_event_type_distribution_object = GetFunnelDropOffDistributionResponse.FunnelEventTypeDistribution(
-                event_type_name=k, count=v)
-            result_set.append(funnel_event_type_distribution_object)
 
-        return GetFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
-                                                    funnel_event_type_distribution=result_set,
-                                                    previous_node_count=len(start_event_type_event_count))
+    result_set = []
+    for k, v in funnel_event_type_distribution.items():
+        funnel_event_type_distribution_object = GetFunnelDropOffDistributionResponse.FunnelEventTypeDistribution(
+            event_type_name=k, count=v)
+        result_set.append(funnel_event_type_distribution_object)
+
+    return GetFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                funnel_event_type_distribution=result_set,
+                                                previous_node_count=start_event_type_event_count)
 
 
 @web_api(GetFunnelDropOffRequest)
@@ -2165,62 +2069,13 @@ def funnel_drop_off_get(request_message: GetFunnelDropOffRequest) -> Union[
     filter_key_name = request_message.filter_key_name
     filter_value = request_message.filter_value
 
-    events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}' ) order by timestamp asc, created_at asc) group by e_id;".format(
-        funnel_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id, dtr.to_tr_str()[0],
-        to_str(datetime.now()), funnel_key_name, funnel_key_name, funnel_event_type_ids[0], account.id,
-        dtr.to_tr_str()[0],
-        dtr.to_tr_str()[1]
-    )
+    csv_data = entity_funnels_get_clickhouse_drop_off_distribution_download(account, dtr, funnel_event_type_ids,
+                                                                            funnel_key_name,
+                                                                            start_event_type_id, end_event_type_id,
+                                                                            filter_key_name, filter_value)
 
-    if filter_key_name and filter_value:
-        events_group_query = "select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, groupArray(event_type_name) as event_type_name_group, groupArray(timestamp) as timestamp_group, groupArray(e_filter_value) as filter_group, e_id from (select id, event_type_id, event_type_name, timestamp, processed_kvs.{} as e_id, processed_kvs.{} as e_filter_value from events where event_type_id in ({}) and account_id = {} and timestamp between '{}' and '{}' and processed_kvs.{} in (select distinct processed_kvs.{} from events where event_type_id = {} and account_id = {} and timestamp between '{}' and '{}') order by timestamp asc, created_at asc) group by e_id;".format(
-            funnel_key_name, filter_key_name, ','.join([str(e) for e in funnel_event_type_ids]), account.id,
-            dtr.to_tr_str()[0],
-            to_str(datetime.now()), funnel_key_name, funnel_key_name, funnel_event_type_ids[0], account.id,
-            dtr.to_tr_str()[0],
-            dtr.to_tr_str()[1]
-        )
-
-    qs = Events.objects.raw(events_group_query)
-    events_group_set = list(qs)
-
-    f = Funnel()
-
-    for grouped_event in events_group_set:
-        f.add_to_node_map(grouped_event, filter_key_name=filter_key_name, filter_value=filter_value)
-
-    dropped_funnel_records, _ = f.get_funnel_drop_records(funnel_event_type_ids, start_event_type_id, end_event_type_id)
-
-    csv_data = [[funnel_key_name, 'path']]
-
-    dropped_funnel_records_str = ', '.join(f"'{x}'" for x in list(dropped_funnel_records))
-    grouped_by_eventType_dropped_records = f"SELECT id, processed_kvs.{funnel_key_name} as p_e_id, event_type_id, event_type_name, ROW_NUMBER() OVER (PARTITION BY processed_kvs.{funnel_key_name} ORDER BY timestamp DESC) AS outer_row_num FROM (SELECT id, processed_kvs.{funnel_key_name}, event_type_id, event_type_name, timestamp FROM (SELECT id, processed_kvs.{funnel_key_name}, event_type_id, event_type_name, timestamp, ROW_NUMBER() OVER (PARTITION BY processed_kvs.{funnel_key_name}, event_type_name ORDER BY timestamp DESC) AS row_num FROM events where processed_kvs.{funnel_key_name} in ({dropped_funnel_records_str}) and timestamp >= '{dtr.to_tr_str()[0]}' and account_id = {account.id}) WHERE row_num = 1)"
-    qs = Events.objects.raw(grouped_by_eventType_dropped_records)
-    row = 0
-    end_of_rows = False
-    while row < len(qs):
-        if end_of_rows:
-            break
-        curr_pkv_event_types = []
-        start_event_type_id_found = False
-        current_record_id = qs[row].p_e_id
-        for i in range(row, len(qs)):
-            if qs[i].p_e_id != current_record_id:
-                row = i
-                break
-            if not start_event_type_id_found:
-                curr_pkv_event_types.append(qs[i].event_type_name)
-            if qs[i].event_type_id == start_event_type_id:
-                start_event_type_id_found = True
-                if len(curr_pkv_event_types) > 0:
-                    curr_pkv_event_types.reverse()
-                    ev_type_key = curr_pkv_event_types[0]
-                    if len(curr_pkv_event_types) > 1:
-                        ev_type_key = ' -> '.join([str(ev_type) for ev_type in curr_pkv_event_types])
-                    csv_data.append([current_record_id, ev_type_key])
-            if i >= len(qs) - 1:
-                end_of_rows = True
-                break
+    if not csv_data:
+        return GetFunnelDropOffResponse(meta=get_meta(tr=dtr.to_tr()))
 
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="file.csv"'
@@ -2459,6 +2314,7 @@ def entity_funnel_create(request_message: CreateEntityFunnelRequest) -> Union[Cr
                                               message=Message(title="Entity Funnel Panel Creation Failure",
                                                               description=error))
     except Exception as e:
+        logger.error(str(e))
         return CreateEntityFunnelResponse(success=BoolValue(value=False),
                                           message=Message(title="Entity Funnel Panel Creation Failure",
                                                           description=str(e)))
@@ -2472,20 +2328,6 @@ def entity_funnel_get(request_message: GetEntityFunnelRequest) -> Union[GetEntit
     entity_funnel_name = request_message.entity_funnel_name
     filter_key_name = request_message.filter_key_name
     filter_value = request_message.filter_value
-    if request_message.meta.time_range.time_geq < 1695907800:
-        try:
-            workflow_view = entity_funnels_get_clickhouse_events(account, dtr, entity_funnel_name, filter_key_name,
-                                                                 filter_value)
-            if workflow_view:
-                return GetEntityFunnelResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=True),
-                                               workflow_view=workflow_view)
-            else:
-                return GetEntityFunnelResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=True),
-                                               message=Message(title="No Funnel Data Found"))
-        except Exception as e:
-            return GetEntityFunnelResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=False),
-                                           message=Message(title="Failed to load Entity Funnel Panel",
-                                                           traceback=str(e)))
     try:
         workflow_view = entity_funnels_get(account, dtr, entity_funnel_name, filter_key_name, filter_value)
         if workflow_view:
@@ -2496,8 +2338,12 @@ def entity_funnel_get(request_message: GetEntityFunnelRequest) -> Union[GetEntit
                                            message=Message(title="No Funnel Data Found"))
     except EntityFunnelCrudNotFoundException:
         try:
-            workflow_view = entity_funnels_get_clickhouse_events(account, dtr, entity_funnel_name, filter_key_name,
-                                                                 filter_value)
+            funnel_event_type_ids, event_key_name, filter_key_name, filter_value = get_funnel_panel_data(account,
+                                                                                                         entity_funnel_name,
+                                                                                                         filter_key_name,
+                                                                                                         filter_value)
+            workflow_view = entity_funnels_get_clickhouse_events(account, dtr, funnel_event_type_ids, event_key_name,
+                                                                 filter_key_name, filter_value)
             if workflow_view:
                 return GetEntityFunnelResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=True),
                                                workflow_view=workflow_view)
@@ -2505,9 +2351,193 @@ def entity_funnel_get(request_message: GetEntityFunnelRequest) -> Union[GetEntit
                 return GetEntityFunnelResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=False),
                                                message=Message(title="No Funnel Data Found"))
         except Exception as e:
+            logger.error(str(e))
             return GetEntityFunnelResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=False),
-                                           message=Message(title="Failed to load Entity Funnel Panel",
+                                           message=Message(title="Entity Funnel Panel Not Found",
                                                            traceback=str(e)))
     except Exception as e:
+        logger.error(str(e))
         return GetEntityFunnelResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=False),
                                        message=Message(title="Failed to load Entity Funnel Panel", traceback=str(e)))
+
+
+@web_api(UpdateEntityFunnelRequest)
+@use_read_replica
+def entity_funnel_update(request_message: UpdateEntityFunnelRequest) -> Union[UpdateEntityFunnelResponse, HttpResponse]:
+    account: Account = get_request_account()
+
+    entity_funnel_id = request_message.entity_funnel_id.value
+    if not entity_funnel_id:
+        return ProtoJsonResponse(
+            UpdateEntityFunnelResponse(
+                success=BoolValue(value=False),
+                message=Message(title='No entity funnel id defined in the request')
+            ),
+            status=400
+        )
+
+    qs: QuerySet = account.entity_set.filter(id=entity_funnel_id)
+    if not qs.exists():
+        return ProtoJsonResponse(
+            UpdateEntityFunnelResponse(
+                success=BoolValue(value=False),
+                message=Message(title=f'{entity_funnel_id} defined in the request not found')
+            ),
+            status=400
+        )
+
+    entity_funnel: Entity = qs.first()
+    try:
+        entity_funnel_update_processor.update(entity_funnel, request_message.update_entity_funnel_ops)
+    except Exception as ex:
+        logger.error(str(ex))
+        return ProtoJsonResponse(
+            UpdateEntityFunnelResponse(
+                success=BoolValue(value=False),
+                message=Message(
+                    title=f'Error updating entity {entity_funnel.name}',
+                )
+            ),
+            status=400
+        )
+    return UpdateEntityFunnelResponse(
+        success=BoolValue(value=True),
+        message=Message(title=f'Entity "{entity_funnel.name}" updated successfully')
+    )
+
+
+@web_api(GetEntityFunnelDropOffRequest)
+@use_read_replica
+def entity_funnel_drop_off_distribution_get(request_message: GetEntityFunnelDropOffRequest) -> Union[
+    GetEntityFunnelDropOffDistributionResponse, HttpResponse]:
+    account: Account = get_request_account()
+    dtr: DateTimeRange = to_dtr(request_message.meta.time_range)
+
+    entity_funnel_name = request_message.entity_funnel_name
+    funnel_key_name = request_message.funnel_key_name
+    start_event_type_id = request_message.start_event_type_id
+    end_event_type_id = request_message.end_event_type_id
+
+    filter_key_name = request_message.filter_key_name
+    filter_value = request_message.filter_value
+    try:
+        funnel_event_type_distribution, start_event_type_event_count = entity_funnels_drop_off_get(account, dtr,
+                                                                                                   entity_funnel_name,
+                                                                                                   funnel_key_name,
+                                                                                                   start_event_type_id,
+                                                                                                   end_event_type_id,
+                                                                                                   filter_key_name,
+                                                                                                   filter_value)
+        if not funnel_event_type_distribution:
+            return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                              success=BoolValue(value=True), message=Message(
+                    title="No Entity Funnel Drop off data found"))
+    except EntityFunnelCrudNotFoundException:
+        try:
+            funnel_event_type_ids, event_key_name, filter_key_name, filter_value = get_funnel_panel_data(account,
+                                                                                                         entity_funnel_name,
+                                                                                                         filter_key_name,
+                                                                                                         filter_value)
+            funnel_event_type_distribution, start_event_type_event_count = entity_funnels_get_clickhouse_drop_off_distribution(
+                account, dtr,
+                funnel_event_type_ids,
+                event_key_name,
+                start_event_type_id,
+                end_event_type_id,
+                filter_key_name,
+                filter_value)
+
+            if not funnel_event_type_distribution:
+                return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                                  success=BoolValue(value=True), message=Message(
+                        title="No Entity Funnel Drop off data found"))
+        except Exception as e:
+            logger.error(str(e))
+            return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                              success=BoolValue(value=True),
+                                                              message=Message(
+                                                                  title="Entity Funnel Panel Not Found",
+                                                                  traceback=str(e)))
+    except Exception as e:
+        logger.error(str(e))
+        return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=True),
+                                                          message=Message(
+                                                              title="Failed to load Entity Funnel Drop off data",
+                                                              traceback=str(e)))
+
+    result_set = []
+    for k, v in funnel_event_type_distribution.items():
+        funnel_event_type_distribution_object = GetFunnelDropOffDistributionResponse.FunnelEventTypeDistribution(
+            event_type_name=k, count=v)
+        result_set.append(funnel_event_type_distribution_object)
+
+    return GetFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                funnel_event_type_distribution=result_set,
+                                                previous_node_count=start_event_type_event_count)
+
+
+@web_api(GetEntityFunnelDropOffRequest)
+@use_read_replica
+def entity_funnel_drop_off_distribution_download(request_message: GetEntityFunnelDropOffRequest) -> Union[
+    GetEntityFunnelDropOffDistributionResponse, HttpResponse]:
+    account: Account = get_request_account()
+    dtr: DateTimeRange = to_dtr(request_message.meta.time_range)
+
+    entity_funnel_name = request_message.entity_funnel_name
+    funnel_key_name = request_message.funnel_key_name
+    start_event_type_id = request_message.start_event_type_id
+    end_event_type_id = request_message.end_event_type_id
+
+    filter_key_name = request_message.filter_key_name
+    filter_value = request_message.filter_value
+    try:
+        csv_data = entity_funnels_drop_off_download(account, dtr,
+                                                    entity_funnel_name,
+                                                    funnel_key_name,
+                                                    start_event_type_id,
+                                                    end_event_type_id,
+                                                    filter_key_name,
+                                                    filter_value)
+        if not csv_data:
+            return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                              success=BoolValue(value=True), message=Message(
+                    title="No Entity Funnel Drop off data found"))
+    except EntityFunnelCrudNotFoundException:
+        try:
+            funnel_event_type_ids, event_key_name, filter_key_name, filter_value = get_funnel_panel_data(account,
+                                                                                                         entity_funnel_name,
+                                                                                                         filter_key_name,
+                                                                                                         filter_value)
+            csv_data = entity_funnels_get_clickhouse_drop_off_distribution_download(account, dtr,
+                                                                                    funnel_event_type_ids,
+                                                                                    event_key_name,
+                                                                                    start_event_type_id,
+                                                                                    end_event_type_id,
+                                                                                    filter_key_name,
+                                                                                    filter_value)
+            if not csv_data:
+                return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                                  success=BoolValue(value=True), message=Message(
+                        title="No Entity Funnel Drop off data found"))
+        except Exception as e:
+            logger.error(str(e))
+            return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()),
+                                                              success=BoolValue(value=True),
+                                                              message=Message(
+                                                                  title="Entity Funnel Panel Not Found",
+                                                                  traceback=str(e)))
+    except Exception as e:
+        logger.error(str(e))
+        return GetEntityFunnelDropOffDistributionResponse(meta=get_meta(tr=dtr.to_tr()), success=BoolValue(value=True),
+                                                          message=Message(
+                                                              title="Failed to load Entity Funnel Drop off data",
+                                                              traceback=str(e)))
+
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="file.csv"'
+    writer = csv.writer(response)
+
+    for row in csv_data:
+        writer.writerow(row)
+
+    return response

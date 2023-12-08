@@ -1,7 +1,9 @@
 import time
+from datetime import datetime
 
 from urllib.parse import urlsplit
 
+import pytz
 from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
@@ -46,3 +48,11 @@ def build_absolute_uri(request, location, protocol=None, enabled=False):
 
 def current_milli_time():
     return round(time.time() * 1000)
+
+
+def current_epoch_timestamp():
+    return int(time.time())
+
+
+def current_datetime(timezone=pytz.utc):
+    return datetime.now(timezone)

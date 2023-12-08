@@ -23,8 +23,8 @@ class DateTimeRange:
 
     def get_prev_dtr(self, offset):
         offset_seconds = time_offset_to_seconds(offset)
-        return DateTimeRange(time_geq=self.time_geq - timedelta(seconds=offset_seconds), time_lt=self.time_lt - timedelta(seconds=offset_seconds))
-
+        return DateTimeRange(time_geq=self.time_geq - timedelta(seconds=offset_seconds),
+                             time_lt=self.time_lt - timedelta(seconds=offset_seconds))
 
 
 def to_dtr(tr: TimeRange = None, now=None, delta=timedelta(minutes=5)):
@@ -52,9 +52,10 @@ def filter_dtr(qs: QuerySet, dtr: DateTimeRange, ts_field: str):
     }
     return qs.filter(**ts_filter_map)
 
-def filter_str_dtr(qs: QuerySet, start_time: str, end_time: str , ts_field: str):
+
+def filter_str_dtr(qs: QuerySet, start_time: str, end_time: str, ts_field: str):
     ts_filter_map = {
-        f'{ts_field}__gte':  start_time,
+        f'{ts_field}__gte': start_time,
         f'{ts_field}__lt': end_time,
     }
     return qs.filter(**ts_filter_map)
@@ -62,6 +63,7 @@ def filter_str_dtr(qs: QuerySet, start_time: str, end_time: str , ts_field: str)
 
 def to_tr(dtr: DateTimeRange):
     return dtr.to_tr()
+
 
 def to_str(t: datetime):
     return t.strftime('%Y-%m-%d %H:%M:%S')
@@ -93,3 +95,17 @@ def time_offset_to_seconds(offset_str):
         return num * time_unit_map[unit]
     else:
         raise ValueError("Invalid time unit. Use 's', 'm', 'h', 'd', 'w', or 'mo'.")
+
+
+def generate_batch_datetime_chunks(start_datetime, end_datetime):
+    current_datetime = start_datetime
+    while current_datetime < end_datetime:
+        yield current_datetime
+        current_datetime += timedelta(hours=1)
+
+
+def generate_batch_timestamp_chunks(start_timestamp, end_timestamp, chunk_size=3600):
+    current_timestamp = start_timestamp
+    while current_timestamp < end_timestamp:
+        yield current_timestamp
+        current_timestamp += chunk_size

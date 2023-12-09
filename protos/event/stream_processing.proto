@@ -1,0 +1,130 @@
+syntax = "proto3";
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
+import "protos/event/query_base.proto";
+import "protos/event/literal.proto";
+
+package protos.event;
+
+message RegexEventProcessingFilter {
+  repeated string regular_expressions = 1;
+}
+
+message JSONEventProcessingFilter {
+  message JSONFilter {
+    string key = 1;
+    string path = 2;
+    Op op = 3;
+    Literal literal = 4;
+  }
+  repeated JSONFilter filters = 1;
+}
+
+message GrokEventProcessingParser {
+  google.protobuf.StringValue grok_expression = 1;
+}
+
+message EventProcessingFilter {
+  enum Type {
+    DEFAULT = 0;
+    REGEX = 1;
+    JSON_FIELD = 2;
+  }
+  message Stats {
+    google.protobuf.UInt64Value total_event_count = 1;
+    google.protobuf.UInt64Value total_filtered_event_count = 2;
+    google.protobuf.UInt64Value total_filtered_failed_event_count = 3;
+    google.protobuf.UInt64Value total_generated_drd_event_count = 4;
+  }
+  google.protobuf.UInt64Value id = 1;
+  google.protobuf.StringValue name = 2;
+  Type type = 3;
+  google.protobuf.BoolValue is_active = 4;
+  sfixed64 created_at = 5;
+  Stats stats = 6;
+  oneof filter {
+    RegexEventProcessingFilter regex = 100;
+    JSONEventProcessingFilter json_field = 101;
+  }
+}
+
+
+message UpdateEventProcessingFilterOp {
+  enum Op {
+    UNKNOWN = 0;
+    UPDATE_EVENT_PROCESSING_FILTER_NAME = 1;
+    UPDATE_EVENT_PROCESSING_FILTER_STATUS = 2;
+  }
+
+  message UpdateEventProcessingFilterName {
+    google.protobuf.StringValue name = 1;
+  }
+
+  message UpdateEventProcessingFilterStatus {
+    google.protobuf.BoolValue is_active = 1;
+  }
+
+  Op op = 1;
+  oneof update {
+    UpdateEventProcessingFilterName update_event_processing_filter_name = 100;
+    UpdateEventProcessingFilterStatus update_event_processing_filter_status = 101;
+  }
+}
+
+
+message EventProcessingParser {
+  enum Type {
+    DEFAULT = 0;
+    GROK = 1;
+  }
+  message ParsedDrdEventDefinition {
+    google.protobuf.StringValue event_timestamp_field = 1;
+    oneof event_name {
+      google.protobuf.StringValue event_name_field = 100;
+      google.protobuf.StringValue custom_event_name = 101;
+    }
+  }
+  message Stats {
+    google.protobuf.UInt64Value total_parsed_event_count = 1;
+    google.protobuf.UInt64Value total_parser_failed_event_count = 2;
+    google.protobuf.UInt64Value total_parsed_event_keys = 3;
+    google.protobuf.UInt64Value total_generated_drd_event_count = 4;
+    repeated string parsed_event_keys = 100;
+    repeated string parsed_timestamp_keys = 101;
+    repeated google.protobuf.Struct parsed_keys_frequency = 102;
+  }
+  google.protobuf.UInt64Value id = 1;
+  google.protobuf.StringValue name = 2;
+  Type type = 3;
+  EventProcessingFilter filter = 4;
+  ParsedDrdEventDefinition drd_event_definition_rule = 5;
+  google.protobuf.BoolValue is_active = 6;
+  sfixed64 created_at = 7;
+  Stats stats = 8;
+  oneof parser {
+    GrokEventProcessingParser grok_parser = 100;
+  }
+}
+
+
+message UpdateEventProcessingParserOp {
+  enum Op {
+    UNKNOWN = 0;
+    UPDATE_EVENT_PROCESSING_PARSER_NAME = 1;
+    UPDATE_EVENT_PROCESSING_PARSER_STATUS = 2;
+  }
+
+  message UpdateEventProcessingParserName {
+    google.protobuf.StringValue name = 1;
+  }
+
+  message UpdateEventProcessingParserStatus {
+    google.protobuf.BoolValue is_active = 1;
+  }
+
+  Op op = 1;
+  oneof update {
+    UpdateEventProcessingParserName update_event_processing_parser_name = 100;
+    UpdateEventProcessingParserStatus update_event_processing_parser_status = 101;
+  }
+}

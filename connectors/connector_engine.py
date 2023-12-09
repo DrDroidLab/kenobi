@@ -4,10 +4,11 @@ import math
 
 from connectors.models import ConnectorKey
 from event.processors.process_events_payload import process_account_events_payload
-from protos.event.connectors_pb2 import Connector as ConnectorProto, ConnectorKey as ConnectorKeyProto, PeriodicRunStatus, ConnectorType
+from protos.event.connectors_pb2 import ConnectorKey as ConnectorKeyProto
 
 from protos.event.schema_pb2 import IngestionEventPayload
 from event.views import transform_event_json
+
 
 def event_qualifies(timestamp, time_range):
     timestamp_time = datetime.datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%SZ").timestamp()

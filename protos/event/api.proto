@@ -19,8 +19,12 @@ import "protos/event/entity.proto";
 import "protos/event/connectors.proto";
 import "protos/event/search.proto";
 import "protos/event/timeline.proto";
+import "protos/event/stream_processing.proto";
+
 
 import "google/protobuf/wrappers.proto";
+import "google/protobuf/struct.proto";
+
 
 message Meta {
   TimeRange time_range = 1;
@@ -981,4 +985,137 @@ message GetEntityFunnelDropOffDistributionResponse {
   Message message = 3;
   uint64 previous_node_count = 4;
   repeated FunnelEventTypeDistribution funnel_event_type_distribution = 5;
+}
+
+/////////////////////  Event Stream Processing APIs /////////////////////
+message EventProcessingFiltersGetRequest {
+  Meta meta = 1;
+  google.protobuf.BoolValue is_active = 2;
+  repeated uint64 event_stream_filter_ids = 3;
+
+}
+
+message EventProcessingFiltersGetResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  repeated EventProcessingFilter event_processing_filters = 3;
+}
+
+
+message EventProcessingFiltersCreateRequest {
+  Meta meta = 1;
+  EventProcessingFilter event_processing_filter = 2;
+}
+
+message EventProcessingFiltersCreateResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  EventProcessingFilter event_processing_filter = 3;
+}
+
+message EventProcessingFiltersUpdateRequest {
+  Meta meta = 1;
+  google.protobuf.UInt64Value event_processing_filter_id = 2;
+  repeated UpdateEventProcessingFilterOp update_event_processing_filter_ops = 3;
+}
+
+message EventProcessingFiltersUpdateResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  EventProcessingFilter event_processing_filter = 3;
+}
+
+
+message FilterEventsGetRequest {
+  Meta meta = 1;
+  EventProcessingFilter event_processing_filter = 2;
+}
+
+message FilterEventsGetResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  EventProcessingFilter.Stats stats = 4;
+  repeated google.protobuf.Struct filtered_events = 5;
+  repeated google.protobuf.Struct filter_failed_events = 6;
+}
+
+
+message EventProcessingParsersGetRequest {
+  Meta meta = 1;
+  google.protobuf.BoolValue is_active = 2;
+  google.protobuf.UInt64Value event_stream_filter_id = 3;
+  repeated uint64 event_stream_parser_ids = 4;
+}
+
+message EventProcessingParsersGetResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  repeated EventProcessingParser event_processing_parsers = 4;
+}
+
+
+message EventProcessingParsersCreateRequest {
+  Meta meta = 1;
+  repeated EventProcessingParser event_processing_parsers = 2;
+}
+
+message EventProcessingParsersCreateResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  repeated EventProcessingParser event_processing_parsers = 3;
+}
+
+message EventProcessingParsersUpdateRequest {
+  Meta meta = 1;
+  google.protobuf.UInt64Value event_processing_parser_id = 2;
+  repeated UpdateEventProcessingParserOp update_event_processing_parser_ops = 3;
+}
+
+message EventProcessingParsersUpdateResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  EventProcessingParser event_processing_parser = 3;
+}
+
+message ParseFilteredEventsGetRequest {
+  Meta meta = 1;
+  EventProcessingParser event_processing_parser = 2;
+  repeated string events = 3;
+}
+
+message ParseFilteredEventsGetResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  repeated google.protobuf.Struct parsed_events = 4;
+  repeated string parser_failed_events = 5;
+  EventProcessingParser.Stats stats = 6;
+}
+
+
+message GenerateDRDParsedEventsGetRequest {
+  Meta meta = 1;
+  EventProcessingParser.ParsedDrdEventDefinition drd_event_definition_rule = 2;
+  repeated google.protobuf.Struct parsed_events = 3;
+}
+
+message GenerateDRDParsedEventsGetResponse {
+  Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  repeated IngestionEvent generated_drd_events = 4;
+  repeated google.protobuf.Struct drd_event_definition_failed_events = 5;
+}
+
+message EventProcessingFiltersParsersCreateRequest {
+  Meta meta = 1;
+  repeated EventProcessingParser event_processing_parsers = 2;
+}
+
+message EventProcessingFiltersParsersCreateResponse {
+  google.protobuf.BoolValue success = 1;
+  Message message = 2;
+  repeated EventProcessingParser event_processing_parsers = 3;
 }

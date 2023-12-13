@@ -18,8 +18,8 @@ from protos.kafka.raw_events_pb2 import RawEventPayloadValue
 from prototype.utils.utils import current_milli_time, transform_event_json
 from utils.proto_utils import dict_to_proto, proto_to_dict
 
-
 logger = logging.getLogger(__name__)
+
 
 def value_infer_type(event_value):
     if not event_value:

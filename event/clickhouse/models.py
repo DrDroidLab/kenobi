@@ -5,7 +5,6 @@ import json
 
 from event.models import EventType
 from protos.event.base_pb2 import Event as EventProto
-from protos.event.monitor_pb2 import MonitorTransaction as MonitorTransactionProto, MonitorPartial
 
 
 def clean_event_kvs(event_kvs: list):
@@ -75,3 +74,69 @@ class MonitorTransactions(clickhouse_models.ClickhouseModel):
 
     class Meta:
         db_table = 'monitor_transactions'
+
+
+class RawEventStreamData(clickhouse_models.ClickhouseModel):
+    id = clickhouse_models.UUIDField(primary_key=True)
+    account_id = clickhouse_models.UInt64Field()
+    created_at = clickhouse_models.DateTime64Field()
+    timestamp = clickhouse_models.DateTime64Field()
+    event_source = clickhouse_models.UInt16Field()
+    data = clickhouse_models.StringField()
+    type = clickhouse_models.UInt16Field()
+
+    class Meta:
+        db_table = 'raw_event_stream_data'
+
+
+class FilterFailedRawEventStreamData(clickhouse_models.ClickhouseModel):
+    id = clickhouse_models.UUIDField(primary_key=True)
+    account_id = clickhouse_models.UInt64Field()
+    created_at = clickhouse_models.DateTime64Field()
+    timestamp = clickhouse_models.DateTime64Field()
+    event_source = clickhouse_models.UInt16Field()
+    data = clickhouse_models.StringField()
+    type = clickhouse_models.UInt16Field()
+
+    class Meta:
+        db_table = 'filter_failed_raw_event_stream_data'
+
+
+class ParserFailedRawEventStreamData(clickhouse_models.ClickhouseModel):
+    id = clickhouse_models.UUIDField(primary_key=True)
+    account_id = clickhouse_models.UInt64Field()
+    filter_id = clickhouse_models.UInt64Field()
+    created_at = clickhouse_models.DateTime64Field()
+    timestamp = clickhouse_models.DateTime64Field()
+    event_source = clickhouse_models.UInt16Field()
+    filtered_event_data = clickhouse_models.StringField()
+
+    class Meta:
+        db_table = 'parser_failed_raw_event_stream_data'
+
+
+class DrdEventDefinitionFailedParsedEventData(clickhouse_models.ClickhouseModel):
+    id = clickhouse_models.UUIDField(primary_key=True)
+    account_id = clickhouse_models.UInt64Field()
+    parser_id = clickhouse_models.UInt64Field()
+    created_at = clickhouse_models.DateTime64Field()
+    timestamp = clickhouse_models.DateTime64Field()
+    event_source = clickhouse_models.UInt16Field()
+    parsed_event = clickhouse_models.StringField()
+
+    class Meta:
+        db_table = 'drd_event_definition_failed_parsed_event_data'
+
+
+class FilterParsedEventData(clickhouse_models.ClickhouseModel):
+    id = clickhouse_models.UUIDField(primary_key=True)
+    account_id = clickhouse_models.UInt64Field()
+    filter_id = clickhouse_models.UInt64Field()
+    parser_id = clickhouse_models.UInt64Field()
+    created_at = clickhouse_models.DateTime64Field()
+    timestamp = clickhouse_models.DateTime64Field()
+    event_source = clickhouse_models.UInt16Field()
+    parsed_drd_event = clickhouse_models.StringField()
+
+    class Meta:
+        db_table = 'filter_parsed_event_data'

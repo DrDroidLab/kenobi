@@ -34,7 +34,6 @@ enum TransformerType {
   CLOUDWATCH_JSON_LOG_TRANSFORMER = 4;
 }
 
-
 enum DecoderType {
   UNKNOWN_DT = 0;
   AWS_KINESIS_DECODER = 1;

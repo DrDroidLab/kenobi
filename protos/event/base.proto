@@ -69,6 +69,8 @@ message Event {
     AMPLITUDE = 5;
     SNS = 6;
     CLOUDWATCH = 7;
+    COLLECTOR = 8;
+    AWS_KINESIS = 9;
   }
   uint64 id = 1;
   EventTypePartial event_type = 2;

@@ -13,7 +13,9 @@ class DbRouter:
 
     def db_for_read(self, model, **hints):
 
-        if model.__name__ in ['Events', 'MonitorTransactions']:
+        if model.__name__ in ['Events', 'MonitorTransactions', 'RawEventStreamData', 'FilterFailedRawEventStreamData',
+                              'ParserFailedRawEventStreamData', 'DrdEventDefinitionFailedParsedEventData',
+                              'FilterParsedEventData']:
             return self._clickhouse_db_key
 
         db_select: DbSelect = get_db_select()
@@ -31,7 +33,9 @@ class DbRouter:
         """
         Writes always go to primary.
         """
-        if model.__name__ in ['Events', 'MonitorTransactions']:
+        if model.__name__ in ['Events', 'MonitorTransactions', 'RawEventStreamData', 'FilterFailedRawEventStreamData',
+                              'ParserFailedRawEventStreamData', 'DrdEventDefinitionFailedParsedEventData',
+                              'FilterParsedEventData']:
             return self._clickhouse_db_key
 
         return self._default_db_key

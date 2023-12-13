@@ -194,4 +194,5 @@ django-clickhouse-backend==1.0.3
 datadog==0.46.0
 datadog-api-client==2.15.0
 newrelic-api==1.0.6
+pygrok==1.0.0
 

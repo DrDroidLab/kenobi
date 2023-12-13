@@ -242,3 +242,64 @@ class AWSKinesisIngestionStreamPayloadResponse(google.protobuf.message.Message):
     def ClearField(self, field_name: typing_extensions.Literal["errorMessage", b"errorMessage", "requestId", b"requestId", "timestamp", b"timestamp"]) -> None: ...
 
 global___AWSKinesisIngestionStreamPayloadResponse = AWSKinesisIngestionStreamPayloadResponse
+
+@typing_extensions.final
+class DrdCollectorEventPayload(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    DATA_FIELD_NUMBER: builtins.int
+    data: builtins.str
+    def __init__(
+        self,
+        *,
+        data: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["data", b"data"]) -> None: ...
+
+global___DrdCollectorEventPayload = DrdCollectorEventPayload
+
+@typing_extensions.final
+class DrdCollectorIngestionStreamPayloadRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    REQUESTID_FIELD_NUMBER: builtins.int
+    TIMESTAMP_FIELD_NUMBER: builtins.int
+    RECORDS_FIELD_NUMBER: builtins.int
+    SOURCE_FIELD_NUMBER: builtins.int
+    requestId: builtins.str
+    timestamp: builtins.int
+    @property
+    def records(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[global___DrdCollectorEventPayload]: ...
+    source: builtins.str
+    def __init__(
+        self,
+        *,
+        requestId: builtins.str = ...,
+        timestamp: builtins.int = ...,
+        records: collections.abc.Iterable[global___DrdCollectorEventPayload] | None = ...,
+        source: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["records", b"records", "requestId", b"requestId", "source", b"source", "timestamp", b"timestamp"]) -> None: ...
+
+global___DrdCollectorIngestionStreamPayloadRequest = DrdCollectorIngestionStreamPayloadRequest
+
+@typing_extensions.final
+class DrdCollectorIngestionStreamPayloadResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    REQUESTID_FIELD_NUMBER: builtins.int
+    TIMESTAMP_FIELD_NUMBER: builtins.int
+    ERRORMESSAGE_FIELD_NUMBER: builtins.int
+    requestId: builtins.str
+    timestamp: builtins.int
+    errorMessage: builtins.str
+    def __init__(
+        self,
+        *,
+        requestId: builtins.str = ...,
+        timestamp: builtins.int = ...,
+        errorMessage: builtins.str = ...,
+    ) -> None: ...
+    def ClearField(self, field_name: typing_extensions.Literal["errorMessage", b"errorMessage", "requestId", b"requestId", "timestamp", b"timestamp"]) -> None: ...
+
+global___DrdCollectorIngestionStreamPayloadResponse = DrdCollectorIngestionStreamPayloadResponse

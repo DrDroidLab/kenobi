@@ -996,9 +996,10 @@ message EventProcessingFiltersGetRequest {
 }
 
 message EventProcessingFiltersGetResponse {
-  google.protobuf.BoolValue success = 1;
-  Message message = 2;
-  repeated EventProcessingFilter event_processing_filters = 3;
+   Meta meta = 1;
+  google.protobuf.BoolValue success = 2;
+  Message message = 3;
+  repeated EventProcessingFilter event_processing_filters = 4;
 }
 
 

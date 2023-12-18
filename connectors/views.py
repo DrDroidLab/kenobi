@@ -236,6 +236,7 @@ def event_processing_filters_get(request_message: EventProcessingFiltersGetReque
             filters['id__in'] = request_message.event_stream_filter_ids
 
         account_event_processing_filters = account.eventprocessingfilter_set.filter(**filters)
+        all_filters_count = account_event_processing_filters.count()
         account_event_processing_filters = filter_page(account_event_processing_filters, page)
         event_processing_filters = list(x.proto for x in account_event_processing_filters)
         for event_processing_filter in event_processing_filters:
@@ -245,7 +246,8 @@ def event_processing_filters_get(request_message: EventProcessingFiltersGetReque
                 parsed_drd_events = filter_time_range(parsed_drd_events, time_range, 'timestamp')
             event_processing_filter.stats.total_generated_drd_event_count.value = parsed_drd_events.count()
 
-        return EventProcessingFiltersGetResponse(success=BoolValue(value=True),
+        return EventProcessingFiltersGetResponse(meta=get_meta(tr=time_range, page=page, total_count=all_filters_count),
+                                                 success=BoolValue(value=True),
                                                  event_processing_filters=event_processing_filters)
     except Exception as e:
         logger.error(e)

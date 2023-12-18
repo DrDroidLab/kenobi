@@ -3677,9 +3677,12 @@ global___EventProcessingFiltersGetRequest = EventProcessingFiltersGetRequest
 class EventProcessingFiltersGetResponse(google.protobuf.message.Message):
     DESCRIPTOR: google.protobuf.descriptor.Descriptor
 
+    META_FIELD_NUMBER: builtins.int
     SUCCESS_FIELD_NUMBER: builtins.int
     MESSAGE_FIELD_NUMBER: builtins.int
     EVENT_PROCESSING_FILTERS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
     @property
     def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
     @property
@@ -3689,12 +3692,13 @@ class EventProcessingFiltersGetResponse(google.protobuf.message.Message):
     def __init__(
         self,
         *,
+        meta: global___Meta | None = ...,
         success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
         message: global___Message | None = ...,
         event_processing_filters: collections.abc.Iterable[protos.event.stream_processing_pb2.EventProcessingFilter] | None = ...,
     ) -> None: ...
-    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "success", b"success"]) -> builtins.bool: ...
-    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filters", b"event_processing_filters", "message", b"message", "success", b"success"]) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filters", b"event_processing_filters", "message", b"message", "meta", b"meta", "success", b"success"]) -> None: ...
 
 global___EventProcessingFiltersGetResponse = EventProcessingFiltersGetResponse
 

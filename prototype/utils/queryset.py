@@ -17,9 +17,9 @@ def filter_time_range(qs: QuerySet, tr, ts_field: str):
     return qs.filter(**ts_filter_map)
 
 
-def filter_page(qs: QuerySet, p: Page):
+def filter_page(qs: QuerySet, p: Page, default_limit=100):
     if not p:
-        return qs[0:100]
+        return qs[0:default_limit]
     if not p.limit.value or p.limit.value > 100:
         p.limit.value = 100
     if p.offset.value:
@@ -27,6 +27,7 @@ def filter_page(qs: QuerySet, p: Page):
 
     p.offset.value = 0
     return qs[:p.limit.value]
+
 
 def filter_page_for_sql(p: Page):
     filter_str = ""

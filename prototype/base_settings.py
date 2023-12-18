@@ -285,6 +285,18 @@ DELAYED_EVENT_TRIGGER_RESOLUTION_WINDOW_LOWER_BOUND_IN_SEC = int(env.str(
 
 ENTITY_PROCESSING_ENABLED = env.bool("ENTITY_PROCESSING_ENABLED", default=True)
 
+EVENT_STREAM_PROCESSING = {
+    'enabled': env.bool("EVENT_STREAM_PROCESSING_ENABLED", default=False),
+    'process_raw_event_stream_async': env.bool("KAFKA_PRODUCE_RAW_EVENT_STREAM_ENABLED", default=False),
+    'process_account_raw_event_stream_async': env.bool("KAFKA_PRODUCE_ACCOUNT_RAW_EVENT_STREAM_ENABLED", default=False),
+    'process_filtered_event_stream_async': env.bool("KAFKA_PRODUCE_FILTERED_EVENT_STREAM_ENABLED", default=False),
+    'process_parsed_event_stream_async': env.bool("KAFKA_PRODUCE_PARSED_EVENT_STREAM_ENABLED", default=False),
+    'raw_event_stream_producer': 'raw_event_stream',
+    'account_raw_event_stream_producer': 'account_raw_event_stream',
+    'filtered_event_stream_producer': 'filtered_event_stream',
+    'parsed_event_stream_producer': 'parsed_event_stream',
+}
+
 RAW_EVENT_PROCESSING = {
     'async': env.bool("KAFKA_PRODUCER_RAW_EVENT_ENABLED", default=False),
     'producer': 'raw_events'
@@ -338,6 +350,38 @@ KAFKA_PRODUCER_CONFIG = {
             'acks': 1,
         }
     },
+    'raw_event_stream': {
+        'enabled': env.bool("KAFKA_PRODUCE_RAW_EVENT_STREAM_ENABLED", default=False),
+        'topic': env.str("KAFKA_RAW_EVENT_STREAM_TOPIC", default='raw-event-stream'),
+        'config': {
+            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
+            'acks': 1,
+        }
+    },
+    'account_raw_event_stream': {
+        'enabled': env.bool("KAFKA_PRODUCE_ACCOUNT_RAW_EVENT_STREAM_ENABLED", default=False),
+        'topic': env.str("KAFKA_ACCOUNT_RAW_EVENT_STREAM_TOPIC", default='account-raw-event-stream'),
+        'config': {
+            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
+            'acks': 1,
+        }
+    },
+    'filtered_event_stream': {
+        'enabled': env.bool("KAFKA_PRODUCE_FILTERED_EVENT_STREAM_ENABLED", default=False),
+        'topic': env.str("KAFKA_FILTERED_EVENT_STREAM_TOPIC", default='filtered-event-stream'),
+        'config': {
+            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
+            'acks': 1,
+        }
+    },
+    'parsed_event_stream': {
+        'enabled': env.bool("KAFKA_PRODUCE_PARSED_EVENT_STREAM_ENABLED", default=False),
+        'topic': env.str("KAFKA_PRODUCER_PARSED_EVENT_STREAM_PARSER_TOPIC", default='raw-events'),
+        'config': {
+            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
+            'acks': 1,
+        }
+    },
 }
 
 KAFKA_CONSUMER_CONFIG = {
@@ -376,8 +420,36 @@ KAFKA_CONSUMER_CONFIG = {
             'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
             'auto.offset.reset': 'earliest'
         }
+    },
+    'raw_event_stream': {
+        'enabled': env.bool("KAFKA_CONSUMER_RAW_EVENT_STREAM_ENABLED", default=True),
+        'topic': env.str("KAFKA_RAW_EVENT_STREAM_TOPIC", default='raw-event-stream'),
+        'processor': 'event.processors.process_raw_event_stream.RawEventStreamIngestProcessor',
+        'config': {
+            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
+            'auto.offset.reset': 'earliest'
+        }
+    },
+    'account_raw_event_stream': {
+        'enabled': env.bool("KAFKA_CONSUMER_ACCOUNT_RAW_EVENT_STREAM_ENABLED", default=True),
+        'topic': env.str("KAFKA_ACCOUNT_RAW_EVENT_STREAM_TOPIC", default='account-raw-event-stream'),
+        'processor': 'event.processors.process_account_raw_event_stream.AccountRawEventStreamProcessor',
+        'config': {
+            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
+            'auto.offset.reset': 'earliest'
+        }
+    },
+    'filtered_event_stream': {
+        'enabled': env.bool("KAFKA_CONSUMER_FILTERED_EVENT_STREAM_ENABLED", default=True),
+        'topic': env.str("KAFKA_FILTERED_EVENT_STREAM_TOPIC", default='filtered-event-stream'),
+        'processor': 'event.processors.process_filtered_event_stream.FilteredEventStreamProcessor',
+        'config': {
+            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
+            'auto.offset.reset': 'earliest'
+        }
     }
 }
+
 
 def get_cache_backend(alias='default'):
     if env.str("CACHE_BACKEND", default='locmem') == 'redis':

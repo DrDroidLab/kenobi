@@ -3,6 +3,7 @@ import logging
 import traceback
 import uuid
 from datetime import timedelta, datetime
+from json import JSONDecodeError
 from typing import Union
 from collections import defaultdict
 import csv
@@ -22,6 +23,7 @@ from accounts.utils import do_process_events, AccountDailyEventQuotaReached, get
 from connectors.integrations.datadog import DatadogConnector
 from connectors.integrations.newrelic import NewRelicConnector
 from connectors.models import TransformerMapping
+from connectors.transformers.decoder import source_default_decoder_facade
 from connectors.transformers.transformer import transformer_facade
 from event.base.op import OP_DESCRIPTIONS, OP_MAPPINGS, LITERAL_TYPE_DESCRIPTIONS
 from event.cache import GLOBAL_PANEL_CACHE, GLOBAL_DASHBOARD_CACHE, GLOBAL_EVENT_QUERY_SEARCH_REQUEST_CACHE, \
@@ -46,6 +48,7 @@ from event.monitors_triggers_crud import create_monitor_triggers
 from event.notification.notification_facade import notification_client
 from event.notification.notifications_crud import create_db_notifications
 from event.processors.process_events_payload import process_account_events_payload
+from event.processors.process_raw_event_stream import process_raw_events_stream_payload
 from event.tasks import export_task
 from event.triggers.trigger_processor import get_default_trigger_options
 from event.update_processor import entity_update_processor, monitor_trigger_update_processor, \
@@ -54,7 +57,7 @@ from event.workflows.builder import WorkflowBuilder
 from event.workflows.graph import Graph, NewGraph
 from protos.event.alert_pb2 import AlertDetail
 from protos.event.api_pb2 import *
-from protos.event.base_pb2 import TimeRange, Page, EventKey as EventKeyProto, Event as EventProto, EventTypePartial, \
+from protos.event.base_pb2 import TimeRange, Page, Event as EventProto, EventTypePartial, \
     EventTypeStats, EventTypeSummary, Context
 from protos.event.engine_options_pb2 import GlobalQueryOptions
 from protos.event.entity_pb2 import UpdateEntityFunnelOp, Entity as EntityProto
@@ -64,14 +67,15 @@ from protos.event.monitor_pb2 import MonitorPartial, MonitorTransactionPartial, 
 from protos.event.notification_pb2 import NotificationConfig
 from protos.event.options_pb2 import MonitorTriggerOptions
 from protos.event.options_pb2 import TriggerOption, MonitorOptions, NotificationOption, EntityOptions
-from protos.event.panel_pb2 import PanelV1, DashboardV1, ComplexTableData, PanelData
+from protos.event.panel_pb2 import PanelV1, DashboardV1, PanelData
 from protos.event.query_base_pb2 import QueryRequest
 from protos.event.schema_pb2 import IngestionEventPayloadRequest, IngestionEventPayloadResponse, IngestionEventPayload, \
-    KeyValue, IngestionEvent, Value as ValueProto, AWSKinesisIngestionStreamPayloadRequest, \
-    AWSKinesisIngestionStreamPayloadResponse, \
-    AWSKinesisEventPayload
+    IngestionEvent, AWSKinesisIngestionStreamPayloadRequest, AWSKinesisIngestionStreamPayloadResponse, \
+    AWSKinesisEventPayload, DrdCollectorEventPayload, DrdCollectorIngestionStreamPayloadRequest, \
+    DrdCollectorIngestionStreamPayloadResponse
 from protos.event.trigger_pb2 import Trigger as TriggerProto, MonitorTriggerNotificationDetail, \
     EntityTriggerNotificationDetail
+from protos.kafka.event_stream_pb2 import StreamEvent
 from prototype.aggregates import Percentile
 from prototype.db.decorator import use_read_replica
 from prototype.entity_utils import annotate_entity_instance_stats, annotate_entity_timeline
@@ -81,7 +85,7 @@ from prototype.utils.decorators import account_data_api, web_api, api_auth_check
 from prototype.utils.meta import get_meta
 from prototype.utils.queryset import filter_time_range, filter_page
 from prototype.utils.timerange import to_dtr, DateTimeRange, to_tr, filter_dtr
-from prototype.utils.utils import current_milli_time
+from prototype.utils.utils import transform_event_json
 from utils.proto_utils import proto_to_dict, dict_to_proto
 
 from event.clickhouse.models import Events
@@ -91,36 +95,15 @@ EVENT_TIME_FIELD = 'timestamp'
 logger = logging.getLogger(__name__)
 
 
-def infer_value_type(v):
-    if isinstance(v, str):
-        return EventKeyProto.KeyType.STRING, ValueProto(string_value=v)
-    elif isinstance(v, bool):
-        return EventKeyProto.KeyType.BOOLEAN, ValueProto(bool_value=v)
-    elif isinstance(v, int):
-        return EventKeyProto.KeyType.LONG, ValueProto(int_value=v)
-    elif isinstance(v, float):
-        return EventKeyProto.KeyType.DOUBLE, ValueProto(double_value=v)
-    return EventKeyProto.KeyType.UNKNOWN, None
-
-
-def transform_event_json(event_json: dict):
-    event_name: str = event_json.get('name', '')
-    if not event_json:
-        return None
-    payload = event_json.get('payload', None)
-    if not isinstance(payload, dict):
-        return None
-
-    timestamp_in_ms = event_json.get('timestamp', current_milli_time())
-
-    kvlist = []
-    for key, value in payload.items():
-        _, proto_value = infer_value_type(value)
-        if not proto_value:
-            continue
-        kvlist.append(KeyValue(key=key, value=proto_value))
-
-    return IngestionEvent(name=event_name, kvs=kvlist, timestamp=timestamp_in_ms)
+def get_stream_event_type_string_event(data) -> (StreamEvent.Type, str):
+    if isinstance(data, dict):
+        return StreamEvent.Type.JSON, json.dumps(data)
+    try:
+        if json.loads(data):
+            return StreamEvent.Type.JSON, json.dumps(data)
+    except JSONDecodeError:
+        return StreamEvent.Type.STRING, str(data)
+    return StreamEvent.Type.STRING, str(data)
 
 
 @csrf_exempt
@@ -218,6 +201,100 @@ def aws_kinesis_ingest_events(request_message: AWSKinesisIngestionStreamPayloadR
     print("Processed: {} AWS Kinesis Ingestion Events for account id: {}".format(count, account.id))
     return JsonResponse({'requestId': request_id, 'timestamp': timestamp}, status=200,
                         content_type='application/json')
+
+
+@aws_kinesis_data_api(AWSKinesisIngestionStreamPayloadRequest)
+def aws_kinesis_ingest_events_v2(request_message: AWSKinesisIngestionStreamPayloadRequest) -> \
+        Union[AWSKinesisIngestionStreamPayloadResponse, HttpResponse]:
+    account: Account = get_request_account()
+    request_headers = get_current_request().headers
+    common_attributes_headers = request_headers.get('X-Amz-Firehose-Common-Attributes', None)
+    if not common_attributes_headers:
+        return JsonResponse({'error': 'Missing Common Attributes Header'}, status=400,
+                            content_type='application/json')
+
+    common_attributes = json.loads(common_attributes_headers).get('commonAttributes')
+    if not common_attributes:
+        return JsonResponse({'error': 'Missing Common Attributes'}, status=400,
+                            content_type='application/json')
+
+    source = EventProto.EventSource.Value(common_attributes.get('source', 'AWS_KINESIS'))
+
+    request_id: str = request_message.requestId
+    records: [AWSKinesisEventPayload] = request_message.records
+    if request_message.timestamp:
+        timestamp = request_message.timestamp
+    else:
+        timestamp = int(datetime.utcnow().timestamp() * 1000)
+    event_stream: [StreamEvent] = []
+
+    for record in records:
+        try:
+            if record and record.data:
+                if not source or source == EventProto.EventSource.UNKNOWN:
+                    data = record.data
+                else:
+                    data = source_default_decoder_facade.decode(source, record)
+                if data:
+                    for dt in data:
+                        data_type, data_str = get_stream_event_type_string_event(dt)
+                        event_stream.append(
+                            StreamEvent(recorded_ingestion_timestamp=timestamp, event=StringValue(value=data_str),
+                                        event_source=source, type=data_type))
+                else:
+                    continue
+            else:
+                continue
+        except Exception as ex:
+            logger.error(
+                f"Error in AWS Kinesis Ingestion: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
+    count = 0
+    if event_stream:
+        count = process_raw_events_stream_payload(account, event_stream)
+    print(f"Processed:{count} Kinesis Ingestion V2 Events for account: {account.id} with record count: {len(records)}")
+    return JsonResponse({'requestId': request_id, 'timestamp': timestamp}, status=200, content_type='application/json')
+
+
+@account_data_api(DrdCollectorIngestionStreamPayloadRequest)
+def ingest_events_collector(request_message: DrdCollectorIngestionStreamPayloadRequest) -> \
+        Union[DrdCollectorIngestionStreamPayloadResponse, HttpResponse]:
+    account: Account = get_request_account()
+    if request_message.source is not None and request_message.source:
+        try:
+            source = EventProto.EventSource.Value(request_message.source)
+        except Exception as ex:
+            source = EventProto.EventSource.COLLECTOR
+    else:
+        source = EventProto.EventSource.COLLECTOR
+
+    request_id: str = request_message.requestId
+    records: [DrdCollectorEventPayload] = request_message.records
+    if request_message.timestamp:
+        timestamp = request_message.timestamp
+    else:
+        timestamp = int(datetime.utcnow().timestamp() * 1000)
+    event_stream: [StreamEvent] = []
+
+    for record in records:
+        try:
+            if record and record.data:
+                if not source or source == EventProto.EventSource.UNKNOWN:
+                    data = record.data
+                else:
+                    data = source_default_decoder_facade.decode(source, record)
+                data_type, data_str = get_stream_event_type_string_event(data)
+                event_stream.append(
+                    StreamEvent(recorded_ingestion_timestamp=timestamp, event=StringValue(value=data_str),
+                                event_source=source, type=data_type))
+            else:
+                continue
+        except Exception as ex:
+            logger.error(f"Error in Collector Ingestion: {traceback.format_exception(type(ex), ex, ex.__traceback__)}")
+    count = 0
+    if event_stream:
+        count = process_raw_events_stream_payload(account, event_stream)
+    print("Processed: {} Collector Ingestion Events for account id: {}".format(count, account.id))
+    return JsonResponse({'requestId': request_id, 'timestamp': timestamp}, status=200, content_type='application/json')
 
 
 @web_api(GetEventsRequest)

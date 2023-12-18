@@ -5,12 +5,14 @@ from django.conf import settings
 from django.db import transaction as dj_transaction, IntegrityError
 from google.protobuf.message import Message
 
+from connectors.models import EventProcessingFilter, EventProcessingParser
 from event.models import Entity, EntityEventKeyMapping, Trigger, TriggerNotificationConfigMapping, Monitor, \
     EntityMonitorMapping
 from event.monitors_triggers_crud import process_trigger_filters
 from event.notification.notifications_crud import create_db_notifications
 from protos.event.entity_pb2 import UpdateEntityOp, UpdateEntityFunnelOp
 from protos.event.monitor_pb2 import UpdateMonitorOp
+from protos.event.stream_processing_pb2 import UpdateEventProcessingFilterOp, UpdateEventProcessingParserOp
 from protos.event.trigger_pb2 import UpdateTriggerOp, TriggerDefinition
 from utils.proto_utils import proto_to_dict
 
@@ -61,6 +63,7 @@ class UpdateProcessorMixin:
                 update_op_msg = msg_field_getter(update_op)
                 try:
                     elem = op_fn(elem, update_op_msg)
+                    return elem
                 except Exception as ex:
                     raise UpdateProcessorError(
                         f"{self._op_display_str_dict.get(op)} error for: {clone_elem.name} - {ex}"
@@ -373,7 +376,65 @@ class EntityFunnelUpdateProcessor(UpdateProcessorMixin):
         return elem
 
 
+class EventProcessingFilterUpdateProcessor(UpdateProcessorMixin):
+    update_op_cls = UpdateEventProcessingFilterOp
+
+    @staticmethod
+    def update_event_processing_filter_name(elem: EventProcessingFilter,
+                                            update_op: UpdateEventProcessingFilterOp.UpdateEventProcessingFilterName) -> EventProcessingFilter:
+        if not update_op.name.value:
+            raise Exception(f"New event processing filter name missing for update event processing filter name op")
+
+        if update_op.name.value == elem.name:
+            return elem
+        elem.name = update_op.name.value
+        try:
+            elem.save(update_fields=['name'])
+        except IntegrityError as ex:
+            raise Exception(f"Event processing filter name {update_op.name.value} already exists")
+        return elem
+
+    @staticmethod
+    def update_event_processing_filter_status(elem: EventProcessingFilter,
+                                              update_op: UpdateEventProcessingFilterOp.UpdateEventProcessingFilterStatus) -> EventProcessingFilter:
+        elem.is_active = update_op.is_active.value
+        qs = elem.eventprocessingparser_set.all()
+        for event_processing_parser in qs:
+            event_processing_parser.is_active = update_op.is_active.value
+            event_processing_parser.save(update_fields=['is_active'])
+        elem.save(update_fields=['is_active'])
+        return elem
+
+
+class EventProcessingParserUpdateProcessor(UpdateProcessorMixin):
+    update_op_cls = UpdateEventProcessingParserOp
+
+    @staticmethod
+    def update_event_processing_filter_name(elem: EventProcessingParser,
+                                            update_op: UpdateEventProcessingParserOp.UpdateEventProcessingParserName) -> EventProcessingParser:
+        if not update_op.name.value:
+            raise Exception(f"New event processing filter name missing for update event processing filter name op")
+
+        if update_op.name.value == elem.name:
+            return elem
+        elem.name = update_op.name.value
+        try:
+            elem.save(update_fields=['name'])
+        except IntegrityError as ex:
+            raise Exception(f"Event processing filter name {update_op.name.value} already exists")
+        return elem
+
+    @staticmethod
+    def update_event_processing_parser_status(elem: EventProcessingParser,
+                                              update_op: UpdateEventProcessingParserOp.UpdateEventProcessingParserStatus) -> EventProcessingParser:
+        elem.is_active = update_op.is_active.value
+        elem.save(update_fields=['is_active'])
+        return elem
+
+
 entity_update_processor = EntityUpdateProcessor()
 monitor_update_processor = MonitorUpdateProcessor()
 monitor_trigger_update_processor = MonitorTriggerUpdateProcessor()
 entity_funnel_update_processor = EntityFunnelUpdateProcessor()
+event_processing_filter_update_processor = EventProcessingFilterUpdateProcessor()
+event_processing_parser_update_processor = EventProcessingParserUpdateProcessor()

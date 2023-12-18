@@ -7,6 +7,7 @@ import collections.abc
 import google.protobuf.descriptor
 import google.protobuf.internal.containers
 import google.protobuf.message
+import google.protobuf.struct_pb2
 import google.protobuf.wrappers_pb2
 import protos.event.account_pb2
 import protos.event.alert_pb2
@@ -23,6 +24,7 @@ import protos.event.panel_pb2
 import protos.event.query_base_pb2
 import protos.event.schema_pb2
 import protos.event.search_pb2
+import protos.event.stream_processing_pb2
 import protos.event.timeline_pb2
 import protos.event.trigger_pb2
 import sys
@@ -3643,3 +3645,529 @@ class GetEntityFunnelDropOffDistributionResponse(google.protobuf.message.Message
     def ClearField(self, field_name: typing_extensions.Literal["funnel_event_type_distribution", b"funnel_event_type_distribution", "message", b"message", "meta", b"meta", "previous_node_count", b"previous_node_count", "success", b"success"]) -> None: ...
 
 global___GetEntityFunnelDropOffDistributionResponse = GetEntityFunnelDropOffDistributionResponse
+
+@typing_extensions.final
+class EventProcessingFiltersGetRequest(google.protobuf.message.Message):
+    """///////////////////  Event Stream Processing APIs /////////////////////"""
+
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    IS_ACTIVE_FIELD_NUMBER: builtins.int
+    EVENT_STREAM_FILTER_IDS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def is_active(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def event_stream_filter_ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        is_active: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        event_stream_filter_ids: collections.abc.Iterable[builtins.int] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["is_active", b"is_active", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_stream_filter_ids", b"event_stream_filter_ids", "is_active", b"is_active", "meta", b"meta"]) -> None: ...
+
+global___EventProcessingFiltersGetRequest = EventProcessingFiltersGetRequest
+
+@typing_extensions.final
+class EventProcessingFiltersGetResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_FILTERS_FIELD_NUMBER: builtins.int
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def event_processing_filters(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.EventProcessingFilter]: ...
+    def __init__(
+        self,
+        *,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        event_processing_filters: collections.abc.Iterable[protos.event.stream_processing_pb2.EventProcessingFilter] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filters", b"event_processing_filters", "message", b"message", "success", b"success"]) -> None: ...
+
+global___EventProcessingFiltersGetResponse = EventProcessingFiltersGetResponse
+
+@typing_extensions.final
+class EventProcessingFiltersCreateRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_FILTER_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def event_processing_filter(self) -> protos.event.stream_processing_pb2.EventProcessingFilter: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        event_processing_filter: protos.event.stream_processing_pb2.EventProcessingFilter | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "meta", b"meta"]) -> None: ...
+
+global___EventProcessingFiltersCreateRequest = EventProcessingFiltersCreateRequest
+
+@typing_extensions.final
+class EventProcessingFiltersCreateResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_FILTER_FIELD_NUMBER: builtins.int
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def event_processing_filter(self) -> protos.event.stream_processing_pb2.EventProcessingFilter: ...
+    def __init__(
+        self,
+        *,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        event_processing_filter: protos.event.stream_processing_pb2.EventProcessingFilter | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "message", b"message", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "message", b"message", "success", b"success"]) -> None: ...
+
+global___EventProcessingFiltersCreateResponse = EventProcessingFiltersCreateResponse
+
+@typing_extensions.final
+class EventProcessingFiltersUpdateRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_FILTER_ID_FIELD_NUMBER: builtins.int
+    UPDATE_EVENT_PROCESSING_FILTER_OPS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def event_processing_filter_id(self) -> google.protobuf.wrappers_pb2.UInt64Value: ...
+    @property
+    def update_event_processing_filter_ops(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.UpdateEventProcessingFilterOp]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        event_processing_filter_id: google.protobuf.wrappers_pb2.UInt64Value | None = ...,
+        update_event_processing_filter_ops: collections.abc.Iterable[protos.event.stream_processing_pb2.UpdateEventProcessingFilterOp] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_filter_id", b"event_processing_filter_id", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filter_id", b"event_processing_filter_id", "meta", b"meta", "update_event_processing_filter_ops", b"update_event_processing_filter_ops"]) -> None: ...
+
+global___EventProcessingFiltersUpdateRequest = EventProcessingFiltersUpdateRequest
+
+@typing_extensions.final
+class EventProcessingFiltersUpdateResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_FILTER_FIELD_NUMBER: builtins.int
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def event_processing_filter(self) -> protos.event.stream_processing_pb2.EventProcessingFilter: ...
+    def __init__(
+        self,
+        *,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        event_processing_filter: protos.event.stream_processing_pb2.EventProcessingFilter | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "message", b"message", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "message", b"message", "success", b"success"]) -> None: ...
+
+global___EventProcessingFiltersUpdateResponse = EventProcessingFiltersUpdateResponse
+
+@typing_extensions.final
+class FilterEventsGetRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_FILTER_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def event_processing_filter(self) -> protos.event.stream_processing_pb2.EventProcessingFilter: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        event_processing_filter: protos.event.stream_processing_pb2.EventProcessingFilter | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_filter", b"event_processing_filter", "meta", b"meta"]) -> None: ...
+
+global___FilterEventsGetRequest = FilterEventsGetRequest
+
+@typing_extensions.final
+class FilterEventsGetResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    STATS_FIELD_NUMBER: builtins.int
+    FILTERED_EVENTS_FIELD_NUMBER: builtins.int
+    FILTER_FAILED_EVENTS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def stats(self) -> protos.event.stream_processing_pb2.EventProcessingFilter.Stats: ...
+    @property
+    def filtered_events(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[google.protobuf.struct_pb2.Struct]: ...
+    @property
+    def filter_failed_events(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[google.protobuf.struct_pb2.Struct]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        stats: protos.event.stream_processing_pb2.EventProcessingFilter.Stats | None = ...,
+        filtered_events: collections.abc.Iterable[google.protobuf.struct_pb2.Struct] | None = ...,
+        filter_failed_events: collections.abc.Iterable[google.protobuf.struct_pb2.Struct] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "stats", b"stats", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["filter_failed_events", b"filter_failed_events", "filtered_events", b"filtered_events", "message", b"message", "meta", b"meta", "stats", b"stats", "success", b"success"]) -> None: ...
+
+global___FilterEventsGetResponse = FilterEventsGetResponse
+
+@typing_extensions.final
+class EventProcessingParsersGetRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    IS_ACTIVE_FIELD_NUMBER: builtins.int
+    EVENT_STREAM_FILTER_ID_FIELD_NUMBER: builtins.int
+    EVENT_STREAM_PARSER_IDS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def is_active(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def event_stream_filter_id(self) -> google.protobuf.wrappers_pb2.UInt64Value: ...
+    @property
+    def event_stream_parser_ids(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.int]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        is_active: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        event_stream_filter_id: google.protobuf.wrappers_pb2.UInt64Value | None = ...,
+        event_stream_parser_ids: collections.abc.Iterable[builtins.int] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_stream_filter_id", b"event_stream_filter_id", "is_active", b"is_active", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_stream_filter_id", b"event_stream_filter_id", "event_stream_parser_ids", b"event_stream_parser_ids", "is_active", b"is_active", "meta", b"meta"]) -> None: ...
+
+global___EventProcessingParsersGetRequest = EventProcessingParsersGetRequest
+
+@typing_extensions.final
+class EventProcessingParsersGetResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSERS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def event_processing_parsers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.EventProcessingParser]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        event_processing_parsers: collections.abc.Iterable[protos.event.stream_processing_pb2.EventProcessingParser] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parsers", b"event_processing_parsers", "message", b"message", "meta", b"meta", "success", b"success"]) -> None: ...
+
+global___EventProcessingParsersGetResponse = EventProcessingParsersGetResponse
+
+@typing_extensions.final
+class EventProcessingParsersCreateRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSERS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def event_processing_parsers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.EventProcessingParser]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        event_processing_parsers: collections.abc.Iterable[protos.event.stream_processing_pb2.EventProcessingParser] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parsers", b"event_processing_parsers", "meta", b"meta"]) -> None: ...
+
+global___EventProcessingParsersCreateRequest = EventProcessingParsersCreateRequest
+
+@typing_extensions.final
+class EventProcessingParsersCreateResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSERS_FIELD_NUMBER: builtins.int
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def event_processing_parsers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.EventProcessingParser]: ...
+    def __init__(
+        self,
+        *,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        event_processing_parsers: collections.abc.Iterable[protos.event.stream_processing_pb2.EventProcessingParser] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parsers", b"event_processing_parsers", "message", b"message", "success", b"success"]) -> None: ...
+
+global___EventProcessingParsersCreateResponse = EventProcessingParsersCreateResponse
+
+@typing_extensions.final
+class EventProcessingParsersUpdateRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSER_ID_FIELD_NUMBER: builtins.int
+    UPDATE_EVENT_PROCESSING_PARSER_OPS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def event_processing_parser_id(self) -> google.protobuf.wrappers_pb2.UInt64Value: ...
+    @property
+    def update_event_processing_parser_ops(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.UpdateEventProcessingParserOp]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        event_processing_parser_id: google.protobuf.wrappers_pb2.UInt64Value | None = ...,
+        update_event_processing_parser_ops: collections.abc.Iterable[protos.event.stream_processing_pb2.UpdateEventProcessingParserOp] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_parser_id", b"event_processing_parser_id", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parser_id", b"event_processing_parser_id", "meta", b"meta", "update_event_processing_parser_ops", b"update_event_processing_parser_ops"]) -> None: ...
+
+global___EventProcessingParsersUpdateRequest = EventProcessingParsersUpdateRequest
+
+@typing_extensions.final
+class EventProcessingParsersUpdateResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSER_FIELD_NUMBER: builtins.int
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def event_processing_parser(self) -> protos.event.stream_processing_pb2.EventProcessingParser: ...
+    def __init__(
+        self,
+        *,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        event_processing_parser: protos.event.stream_processing_pb2.EventProcessingParser | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_parser", b"event_processing_parser", "message", b"message", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parser", b"event_processing_parser", "message", b"message", "success", b"success"]) -> None: ...
+
+global___EventProcessingParsersUpdateResponse = EventProcessingParsersUpdateResponse
+
+@typing_extensions.final
+class ParseFilteredEventsGetRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSER_FIELD_NUMBER: builtins.int
+    EVENTS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def event_processing_parser(self) -> protos.event.stream_processing_pb2.EventProcessingParser: ...
+    @property
+    def events(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        event_processing_parser: protos.event.stream_processing_pb2.EventProcessingParser | None = ...,
+        events: collections.abc.Iterable[builtins.str] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["event_processing_parser", b"event_processing_parser", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parser", b"event_processing_parser", "events", b"events", "meta", b"meta"]) -> None: ...
+
+global___ParseFilteredEventsGetRequest = ParseFilteredEventsGetRequest
+
+@typing_extensions.final
+class ParseFilteredEventsGetResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    PARSED_EVENTS_FIELD_NUMBER: builtins.int
+    PARSER_FAILED_EVENTS_FIELD_NUMBER: builtins.int
+    STATS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def parsed_events(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[google.protobuf.struct_pb2.Struct]: ...
+    @property
+    def parser_failed_events(self) -> google.protobuf.internal.containers.RepeatedScalarFieldContainer[builtins.str]: ...
+    @property
+    def stats(self) -> protos.event.stream_processing_pb2.EventProcessingParser.Stats: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        parsed_events: collections.abc.Iterable[google.protobuf.struct_pb2.Struct] | None = ...,
+        parser_failed_events: collections.abc.Iterable[builtins.str] | None = ...,
+        stats: protos.event.stream_processing_pb2.EventProcessingParser.Stats | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "stats", b"stats", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "parsed_events", b"parsed_events", "parser_failed_events", b"parser_failed_events", "stats", b"stats", "success", b"success"]) -> None: ...
+
+global___ParseFilteredEventsGetResponse = ParseFilteredEventsGetResponse
+
+@typing_extensions.final
+class GenerateDRDParsedEventsGetRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    DRD_EVENT_DEFINITION_RULE_FIELD_NUMBER: builtins.int
+    PARSED_EVENTS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def drd_event_definition_rule(self) -> protos.event.stream_processing_pb2.EventProcessingParser.ParsedDrdEventDefinition: ...
+    @property
+    def parsed_events(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[google.protobuf.struct_pb2.Struct]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        drd_event_definition_rule: protos.event.stream_processing_pb2.EventProcessingParser.ParsedDrdEventDefinition | None = ...,
+        parsed_events: collections.abc.Iterable[google.protobuf.struct_pb2.Struct] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["drd_event_definition_rule", b"drd_event_definition_rule", "meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["drd_event_definition_rule", b"drd_event_definition_rule", "meta", b"meta", "parsed_events", b"parsed_events"]) -> None: ...
+
+global___GenerateDRDParsedEventsGetRequest = GenerateDRDParsedEventsGetRequest
+
+@typing_extensions.final
+class GenerateDRDParsedEventsGetResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    GENERATED_DRD_EVENTS_FIELD_NUMBER: builtins.int
+    DRD_EVENT_DEFINITION_FAILED_EVENTS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def generated_drd_events(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.schema_pb2.IngestionEvent]: ...
+    @property
+    def drd_event_definition_failed_events(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[google.protobuf.struct_pb2.Struct]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        generated_drd_events: collections.abc.Iterable[protos.event.schema_pb2.IngestionEvent] | None = ...,
+        drd_event_definition_failed_events: collections.abc.Iterable[google.protobuf.struct_pb2.Struct] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "meta", b"meta", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["drd_event_definition_failed_events", b"drd_event_definition_failed_events", "generated_drd_events", b"generated_drd_events", "message", b"message", "meta", b"meta", "success", b"success"]) -> None: ...
+
+global___GenerateDRDParsedEventsGetResponse = GenerateDRDParsedEventsGetResponse
+
+@typing_extensions.final
+class EventProcessingFiltersParsersCreateRequest(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    META_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSERS_FIELD_NUMBER: builtins.int
+    @property
+    def meta(self) -> global___Meta: ...
+    @property
+    def event_processing_parsers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.EventProcessingParser]: ...
+    def __init__(
+        self,
+        *,
+        meta: global___Meta | None = ...,
+        event_processing_parsers: collections.abc.Iterable[protos.event.stream_processing_pb2.EventProcessingParser] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["meta", b"meta"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parsers", b"event_processing_parsers", "meta", b"meta"]) -> None: ...
+
+global___EventProcessingFiltersParsersCreateRequest = EventProcessingFiltersParsersCreateRequest
+
+@typing_extensions.final
+class EventProcessingFiltersParsersCreateResponse(google.protobuf.message.Message):
+    DESCRIPTOR: google.protobuf.descriptor.Descriptor
+
+    SUCCESS_FIELD_NUMBER: builtins.int
+    MESSAGE_FIELD_NUMBER: builtins.int
+    EVENT_PROCESSING_PARSERS_FIELD_NUMBER: builtins.int
+    @property
+    def success(self) -> google.protobuf.wrappers_pb2.BoolValue: ...
+    @property
+    def message(self) -> global___Message: ...
+    @property
+    def event_processing_parsers(self) -> google.protobuf.internal.containers.RepeatedCompositeFieldContainer[protos.event.stream_processing_pb2.EventProcessingParser]: ...
+    def __init__(
+        self,
+        *,
+        success: google.protobuf.wrappers_pb2.BoolValue | None = ...,
+        message: global___Message | None = ...,
+        event_processing_parsers: collections.abc.Iterable[protos.event.stream_processing_pb2.EventProcessingParser] | None = ...,
+    ) -> None: ...
+    def HasField(self, field_name: typing_extensions.Literal["message", b"message", "success", b"success"]) -> builtins.bool: ...
+    def ClearField(self, field_name: typing_extensions.Literal["event_processing_parsers", b"event_processing_parsers", "message", b"message", "success", b"success"]) -> None: ...
+
+global___EventProcessingFiltersParsersCreateResponse = EventProcessingFiltersParsersCreateResponse

@@ -70,3 +70,19 @@ message AWSKinesisIngestionStreamPayloadResponse {
   uint64 timestamp = 2;
   string errorMessage = 3;
 }
+
+message DrdCollectorEventPayload {
+  string data = 1;
+}
+message DrdCollectorIngestionStreamPayloadRequest {
+  string requestId = 1;
+  uint64 timestamp = 2;
+  repeated DrdCollectorEventPayload records = 3;
+  string source = 100;
+}
+
+message DrdCollectorIngestionStreamPayloadResponse {
+  string requestId = 1;
+  uint64 timestamp = 2;
+  string errorMessage = 3;
+}

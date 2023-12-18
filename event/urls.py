@@ -6,6 +6,8 @@ urlpatterns = [
     path('ingest/events/v1', views.ingest_events_v1),
     path('ingest/events/v2', views.ingest_events_v2),
     path('ingest/events/aws_kinesis', views.aws_kinesis_ingest_events),
+    path('ingest/events/aws_kinesis/v2', views.aws_kinesis_ingest_events_v2),
+    path('ingest/events/collector', views.ingest_events_collector),
 
     path('api/search/options', views.global_search_options_get),
     path('api/events', views.events_get),

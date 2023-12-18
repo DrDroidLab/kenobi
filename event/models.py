@@ -88,7 +88,7 @@ def get_basic_monitor_trigger_filter_keys(scope, event_filters):
             if key_name == key['name']:
                 if not suffix_op:
                     result.append(BasicTriggerFilter(event_key_id=key['id'], op=Op.EQ,
-                                                 literal=get_literal_for_event_key_type(key['type'], v)))
+                                                     literal=get_literal_for_event_key_type(key['type'], v)))
                 if suffix_op == 'in':
                     result.append(BasicTriggerFilter(event_key_id=key['id'], op=Op.IN,
                                                      literal=get_literal_array_for_event_key_type(key['type'], v)))
@@ -565,7 +565,9 @@ class EntityInstance(models.Model):
         return EntityInstanceStats(
             event_count=UInt64Value(value=getattr(self, 'event_count', 0)),
             transaction_count=UInt64Value(value=getattr(self, 'transaction_count', 0)),
-            alerts=list(EntityInstanceStats.EntityAlert(alert_id=x['alert_id'], entity_trigger_name=x['alert__entity_trigger__name']) for x in list(alert_id_trigger_name_mapping))
+            alerts=list(EntityInstanceStats.EntityAlert(alert_id=x['alert_id'],
+                                                        entity_trigger_name=x['alert__entity_trigger__name']) for x in
+                        list(alert_id_trigger_name_mapping))
         )
 
     @property
@@ -601,21 +603,20 @@ class AlertEntityInstanceMapping(models.Model):
     def proto(self) -> AlertEntityInstance:
         if self.type == AlertEntityInstance.Type.PER_EVENT:
             return AlertEntityInstance(type=self.type,
-                                           alert_id=self.alert_id,
-                                           entity_instance=self.entity_instance.proto)
+                                       alert_id=self.alert_id,
+                                       entity_instance=self.entity_instance.proto)
         elif self.type == AlertEntityInstance.Type.AGGREGATED_EVENTS:
             return AlertEntityInstance(type=self.type,
-                                           alert_id=self.alert_id,
-                                           entity_instance=self.entity_instance.proto)
+                                       alert_id=self.alert_id,
+                                       entity_instance=self.entity_instance.proto)
 
     @property
     def miniproto(self) -> AlertEntityInstance:
         if self.type == AlertEntityInstance.Type.PER_EVENT:
             return AlertEntityInstance(type=self.type,
-                                           alert_id=self.alert_id,
-                                           trigger_name=self.alert.entity_trigger.name)
+                                       alert_id=self.alert_id,
+                                       trigger_name=self.alert.entity_trigger.name)
         return None
-
 
 
 class EntityInstanceEventMapping(models.Model):

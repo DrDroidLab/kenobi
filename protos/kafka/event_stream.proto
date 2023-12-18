@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package protos.kafka;
+import "google/protobuf/wrappers.proto";
+import "protos/event/schema.proto";
+import "protos/event/base.proto";
+
+message StreamEvent {
+  enum Type {
+    UNKNOWN = 0;
+    STRING = 1;
+    JSON = 2;
+  }
+  google.protobuf.StringValue uuid_str = 1;
+  google.protobuf.StringValue event = 2;
+  protos.event.Event.EventSource event_source = 3;
+  sfixed64 recorded_ingestion_timestamp = 4;
+  Type type = 5;
+}
+
+// Publish on `raw-event-stream` topic
+message RawEventStreamPayloadKey {
+}
+
+message RawEventStreamPayloadValue {
+  google.protobuf.UInt64Value account_id = 1;
+  StreamEvent event = 2;
+}
+
+// Publish on `filtered-event-stream` topic
+message FilteredEventStreamPayloadKey {
+}
+
+message FilteredEventStreamPayloadValue {
+  google.protobuf.UInt64Value account_id = 1;
+  google.protobuf.UInt64Value filter_id = 2;
+  StreamEvent event = 3;
+}

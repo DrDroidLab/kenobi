@@ -266,6 +266,8 @@ class Event(google.protobuf.message.Message):
         AMPLITUDE: Event._EventSource.ValueType  # 5
         SNS: Event._EventSource.ValueType  # 6
         CLOUDWATCH: Event._EventSource.ValueType  # 7
+        COLLECTOR: Event._EventSource.ValueType  # 8
+        AWS_KINESIS: Event._EventSource.ValueType  # 9
 
     class EventSource(_EventSource, metaclass=_EventSourceEnumTypeWrapper): ...
     UNKNOWN: Event.EventSource.ValueType  # 0
@@ -276,6 +278,8 @@ class Event(google.protobuf.message.Message):
     AMPLITUDE: Event.EventSource.ValueType  # 5
     SNS: Event.EventSource.ValueType  # 6
     CLOUDWATCH: Event.EventSource.ValueType  # 7
+    COLLECTOR: Event.EventSource.ValueType  # 8
+    AWS_KINESIS: Event.EventSource.ValueType  # 9
 
     ID_FIELD_NUMBER: builtins.int
     EVENT_TYPE_FIELD_NUMBER: builtins.int

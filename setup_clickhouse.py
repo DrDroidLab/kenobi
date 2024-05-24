@@ -10,6 +10,7 @@ client = clickhouse_connect.get_client(host=host, username=username, password=pa
 
 client.command('CREATE DATABASE IF NOT EXISTS default;')
 client.command('USE default;')
+client.command('SET allow_experimental_object_type=1;')
 client.command(
 '''
 SET allow_experimental_object_type=1;

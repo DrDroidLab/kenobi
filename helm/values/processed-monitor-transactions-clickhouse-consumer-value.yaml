@@ -1,0 +1,4 @@
+kafkaConsumer:
+  enabled: true
+  consumer: "processed_monitor_transactions_clickhouse"
+  consumerGroup: "processed_monitor_transactions_clickhouse_consumer_group"

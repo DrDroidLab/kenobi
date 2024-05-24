@@ -1,0 +1,11 @@
+ingestKafka:
+  bootstrapServers: "kafka-service:9092,"
+  rawEvents:
+    enabled: false
+  rawMonitorTransactions:
+    enabled: false
+
+
+celery:
+  queue: account_management
+  workerCount: 1

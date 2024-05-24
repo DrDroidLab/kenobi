@@ -1,0 +1,26 @@
+image:
+  tag: "latest"
+
+debug: "true"
+
+containerCmd: "./start-kafka-consumer.sh"
+
+deployment:
+  containerPort:
+
+db:
+  host: "postgres-service"
+  replica1Host: "postgres-service"
+  usernameSecretKeyRef:
+    name: secrets-db
+  passwordSecretKeyRef:
+    name: secrets-db
+
+service:
+  port:
+
+aws:
+  accessKeyIdSecretKeyRef:
+    name: secrets-aws
+  secretAccessKeySecretKeyRef:
+    name: secrets-aws

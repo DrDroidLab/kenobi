@@ -126,6 +126,7 @@ DATABASES = {
     },
     'clickhouse': {
         'ENGINE': 'clickhouse_backend.backend',
+        'NAME': 'default',
         'HOST': env.str("CLICKHOUSE_HOST", default='localhost'),
         'PORT': env.str("CLICKHOUSE_PORT", default='9000'),
         'USER': env.str("CLICKHOUSE_USERNAME", default='default'),
@@ -503,8 +504,6 @@ GLOBAL_MONITOR_TRANSACTION_QUERY_SEARCH_REQUEST_CACHE = {
     'cache_key': env.str("GLOBAL_MONITOR_TRANSACTION_QUERY_SEARCH_REQUEST_CACHE_KEY", default='default'),
     'enabled': env.bool("GLOBAL_MONITOR_TRANSACTION_QUERY_SEARCH_REQUEST_CACHE_ENABLED", default=True),
 }
-
-RECAPTCHA_SECRET_KEY = env.str("RECAPTCHA_SECRET_KEY", default='6LfGFpgmAAAAAL-caY9EiWPECwnbfaVPrjAUmaAJ')
 
 GLOBAL_ACCOUNT_API_TOKEN_CACHE = {
     'cache_key': env.str("ACCOUNT_API_TOKEN_CACHE_KEY", default='default'),

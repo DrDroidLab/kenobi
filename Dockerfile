@@ -37,6 +37,10 @@ COPY ./setup_db.sh .
 RUN sed -i 's/\r$//g' setup_db.sh
 RUN chmod +x setup_db.sh
 
+COPY ./setup_clickhouse.py .
+RUN sed -i 's/\r$//g' setup_clickhouse.py
+RUN chmod +x setup_clickhouse.py
+
 COPY ./start-server.sh .
 RUN sed -i 's/\r$//g' start-server.sh
 RUN chmod +x start-server.sh

@@ -1,0 +1,8 @@
+clickhouse:
+  enabled: true
+  host: "clickhouse-service"
+  secure: 0
+  usernameSecretKeyRef:
+    name: secrets-clickhouse
+  passwordSecretKeyRef:
+    name: secrets-clickhouse

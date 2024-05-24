@@ -1,0 +1,120 @@
+replicaCount: 1
+
+image:
+  repository: "277357190350.dkr.ecr.us-west-2.amazonaws.com/prototype:helm"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+containerCmd: "./start-server.sh"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+deployment:
+  containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+db:
+  name: "db"
+  host: "postgres-service"
+  port: "5432"
+  replica1Host: "postgres-service"
+  usernameSecretKeyRef:
+    key: "username"
+    name:
+  passwordSecretKeyRef:
+    key: "password"
+    name:
+
+debug: "no"
+serverSecretKeyRef:
+  key: "secret"
+  name:
+
+envRenderSecret: []
+
+csrfTrustedOrigins: []
+
+
+djangoSettingsModule: "prototype.base_settings"
+
+celery:
+  brokerUrl: "redis://redis-service:6379/0"
+  resultBackend: "redis://redis-service:6379/0"
+  queue:
+  workerCount: 10
+
+
+aws:
+  accessKeyIdSecretKeyRef:
+    key: "accessKeyId"
+    name:
+  secretAccessKeySecretKeyRef:
+    key: "secretAccessKey"
+    name:
+
+cache:
+  backend: "redis-service"
+  redisUrl: "redis://redis-service:6379/0"
+  eventTypeCache:
+    enabled: true
+  eventKeyCache:
+    enabled: true
+
+clickhouse:
+  enabled: false
+  host: "clickhouse-service"
+  port: "8123"
+  usernameSecretKeyRef:
+    key: "username"
+    name:
+  passwordSecretKeyRef:
+    key: "password"
+    name:
+
+ingestKafka:
+  bootstrapServers: "kafka-service:9092,"
+  rawEvents:
+    enabled: false
+  rawMonitorTransactions:
+    enabled: false
+
+asyncJob:
+  backFill:
+    monitorTransaction:
+      enabled: false
+
+hpa:
+  enabled: false

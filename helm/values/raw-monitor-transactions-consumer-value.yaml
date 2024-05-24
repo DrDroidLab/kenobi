@@ -1,0 +1,23 @@
+ingestKafka:
+  bootstrapServers: "kafka-service:9092,"
+  rawEvents:
+    enabled: false
+  rawMonitorTransactions:
+    enabled: false
+  processedEvents:
+    enabled: false
+  processedMonitorTransactions:
+    enabled: true
+  rawEventStream:
+    enabled: false
+  accountRawEventStream:
+    enabled: false
+  filteredEventStream:
+    enabled: false
+  parsedEventStream:
+    enabled: false
+
+kafkaConsumer:
+  enabled: true
+  consumer: "raw_monitor_transactions"
+  consumerGroup: "raw_monitor_transactions_consumer_group"

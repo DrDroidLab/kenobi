@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: clickhouse-service
+  name: clickhouse-service
+spec:
+  externalName: 
+  selector:
+    app: clickhouse-service
+  type: ExternalName
+status:
+  loadBalancer: {}

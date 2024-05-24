@@ -1,0 +1,131 @@
+replicaCount: 1
+
+image:
+  repository: "public.ecr.aws/y9s1f3r5/drdroid/prototype:latest"
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: [ ]
+nameOverride: ""
+fullnameOverride: ""
+
+containerCmd: "./start-server.sh"
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: { }
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: { }
+
+podSecurityContext: { }
+# fsGroup: 2000
+
+securityContext: { }
+
+deployment:
+  containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8081
+
+nodeSelector: { }
+
+tolerations: [ ]
+
+affinity: { }
+
+db:
+  name: "db"
+  host: "localhost"
+  replica1Host: "localhost"
+  usernameSecretKeyRef:
+    key: "username"
+    name:
+  passwordSecretKeyRef:
+    key: "password"
+    name:
+
+
+debug: "no"
+serverSecretKeyRef:
+  key: "secret"
+  name:
+
+csrfTrustedOrigins: [ ]
+
+envRenderSecret: { }
+
+djangoSettingsModule: "prototype.base_settings"
+
+celery:
+  brokerUrl: "redis://redis-service:6379/0"
+  resultBackend: "redis://redis-service:6379/0"
+
+
+aws:
+  accessKeyIdSecretKeyRef:
+    key: "accessKeyId"
+    name:
+  secretAccessKeySecretKeyRef:
+    key: "secretAccessKey"
+    name:
+
+eventStreamProcessing:
+  enabled: false
+
+ingestKafka:
+  bootstrapServers: "kafka-service:9092,"
+  rawEvents:
+    enabled: false
+  rawMonitorTransactions:
+    enabled: false
+  processedEvents:
+    enabled: false
+  processedMonitorTransactions:
+    enabled: false
+  rawEventStream:
+    enabled: false
+  accountRawEventStream:
+    enabled: false
+  filteredEventStream:
+    enabled: false
+  parsedEventStream:
+    enabled: false
+
+kafkaConsumer:
+  bootstrapServers: "kafka-service:9092,"
+  enabled: false
+  consumer:
+  consumerGroup:
+
+entityProcessingEnabled: "yes"
+
+cache:
+  backend: "redis-service"
+  redisUrl: "redis://redis-service:6379/0"
+  eventTypeCache:
+    enabled: true
+  eventKeyCache:
+    enabled: true
+
+
+clickhouse:
+  enabled: false
+  host: "clickhouse-service"
+  port: "8123"
+  usernameSecretKeyRef:
+    key: "username"
+    name:
+  passwordSecretKeyRef:
+    key: "password"
+    name:
+
+hpa:
+  enabled: false

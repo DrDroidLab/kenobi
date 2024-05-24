@@ -37,8 +37,13 @@ until postgres_ready; do
 done
 >&2 echo 'PostgreSQL is available'
 
-echo "Running migrations for new db"
-python manage.py migrate
+if postgres_ready;
+then
+  echo "Running migrations for new db"
+  python manage.py migrate
 
-echo "Creating superuser"
-sh scripts/user_creation.sh
+  echo "Creating superuser"
+  sh scripts/user_creation.sh
+else
+  echo "DB still not ready"
+fi

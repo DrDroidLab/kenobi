@@ -1,0 +1,10 @@
+celery:
+  queue: notification
+  workerCount: 3
+
+ingestKafka:
+  bootstrapServers: "kafka-service:9092,"
+  rawEvents:
+    enabled: false
+  rawMonitorTransactions:
+    enabled: false

@@ -3,7 +3,9 @@
 </p>
 
 
-## Kenobi -- Open Source Log-to-Metrics & Log-to-Funnels platform
+## Kenobi -- Open Source Event Lakehouse with compatibility for logs & events with dynamic schema.
+[Read Docs](https://docs.drdroid.io/docs/what-is-kenobi) | [Read architecture](https://notes.drdroid.io/building-an-events-lakehouse-with-dynamic-schema)
+
 
 Kenobi helps you proactively monitor your application by defining correlations in your logs. Kenobi is designed to have a flexible rule-engine, easy-to-use interface and hassle-free deployment.
 

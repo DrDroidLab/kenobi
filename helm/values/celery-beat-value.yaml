@@ -1,0 +1,40 @@
+image:
+  tag: "v1.0"
+
+debug: "no"
+
+containerCmd: "./start-celery-beat.sh"
+
+deployment:
+  containerPort:
+
+db:
+  host: "postgres-service"
+  replica1Host: "postgres-service"
+  usernameSecretKeyRef:
+    name: secrets-db
+  passwordSecretKeyRef:
+    name: secrets-db
+
+service:
+  type: LoadBalancer
+  port:
+
+aws:
+  accessKeyIdSecretKeyRef:
+    name: secrets-aws
+  secretAccessKeySecretKeyRef:
+    name: secrets-aws
+
+
+ingestKafka:
+  bootstrapServers: "kafka-service:9092,"
+  rawEvents:
+    enabled: false
+  rawMonitorTransactions:
+    enabled: false
+
+asyncJob:
+  backFill:
+    monitorTransaction:
+      enabled: false

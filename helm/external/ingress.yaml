@@ -1,0 +1,47 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-ingress
+  annotations:
+    kubernetes.io/ingress.class: ALB # Use the correct ingress class
+    alb.ingress.kubernetes.io/scheme: internet-facing
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /e/ingest/events/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: ingest
+                port:
+                  number: 8080
+          - path: /e/
+            pathType: Prefix
+            backend:
+              service:
+                name: prototype
+                port:
+                  number: 8080
+          - path: /accounts/
+            pathType: Prefix
+            backend:
+              service:
+                name: prototype
+                port:
+                  number: 8080
+          - path: /connectors/
+            pathType: Prefix
+            backend:
+              service:
+                name: prototype
+                port:
+                  number: 8080
+          - path: /*
+            pathType: Prefix
+            backend:
+              service:
+                name: webvault
+                port:
+                  number: 80
+                  

@@ -13,7 +13,6 @@ client.command('USE default;')
 client.command('SET allow_experimental_object_type=1;')
 client.command(
 '''
-SET allow_experimental_object_type=1;
 CREATE TABLE IF NOT EXISTS events (
     id UInt64,
     account_id UInt64,

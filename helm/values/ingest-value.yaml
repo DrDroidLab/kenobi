@@ -1,0 +1,32 @@
+image:
+  tag: "v1.0"
+
+debug: "no"
+
+db:
+  host: "postgres-service"
+  replica1Host: "postgres-service"
+  usernameSecretKeyRef:
+    name: secrets-db
+  passwordSecretKeyRef:
+    name: secrets-db
+
+service:
+  type: ClusterIP
+
+aws:
+  accessKeyIdSecretKeyRef:
+    name: secrets-aws
+  secretAccessKeySecretKeyRef:
+    name: secrets-aws
+
+ingestKafka:
+  rawEvents:
+    enabled: true
+  rawEventStream:
+    enabled: false
+
+eventStreamProcessing:
+  enabled: true
+
+entityProcessingEnabled: "yes"

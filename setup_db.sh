@@ -47,5 +47,3 @@ then
 else
   echo "DB still not ready"
 fi
-
-python setup_clickhouse.py

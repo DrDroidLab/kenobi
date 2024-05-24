@@ -1,0 +1,17 @@
+{{- if .Values.service.port -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "prototype.fullname" . }}
+  labels:
+    {{- include "prototype.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.deployment.containerPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "prototype.selectorLabels" . | nindent 4 }}
+{{- end}}

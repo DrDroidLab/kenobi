@@ -1,0 +1,142 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "prototype.fullname" . }}
+  labels:
+    {{- include "prototype.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "prototype.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "prototype.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ include "prototype.fullname" . }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [ "{{ .Values.containerCmd }}" ]
+          env:
+            - name: DJANGO_CSRF_TRUSTED_ORIGINS
+              value: {{ include "csrf.trusted.origins" . }}
+            - name: DJANGO_DEBUG
+              value: "{{ .Values.debug }}"
+            - name: DJANGO_SETTINGS_MODULE
+              value: "{{ .Values.djangoSettingsModule }}"
+            - name: POSTGRES_DB
+              value: {{ .Values.db.name }}
+            - name: POSTGRES_HOST
+              value: {{ .Values.db.host }}
+            - name: POSTGRES_PORT
+              value: "{{ .Values.db.port }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml .Values.db.passwordSecretKeyRef | nindent 18 }}
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml .Values.db.usernameSecretKeyRef | nindent 18 }}
+            - name: CELERY_BROKER_URL
+              value: {{ .Values.celery.brokerUrl }}
+            - name: CELERY_RESULT_BACKEND
+              value: {{ .Values.celery.resultBackend }}
+            - name: CELERY_WORKER_COUNT
+              value: "{{ .Values.celery.workerCount }}"
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml .Values.aws.accessKeyIdSecretKeyRef | nindent 18 }}
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml .Values.aws.secretAccessKeySecretKeyRef | nindent 18 }}
+            {{- if .Values.serverSecretKeyRef.name }}
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml .Values.serverSecretKeyRef | nindent 20 }}
+            {{- end}}
+            {{- if .Values.ingestKafka.rawEvents.enabled }}
+            - name: KAFKA_PRODUCER_RAW_EVENT_ENABLED
+              value: "{{ .Values.ingestKafka.rawEvents.enabled }}"
+            {{- end }}
+            {{- if .Values.celery.queue }}
+            - name: CELERY_QUEUE
+              value: {{ .Values.celery.queue }}
+            {{- end }}
+            - name: CACHE_BACKEND
+              value: {{ .Values.cache.backend }}
+            - name: REDIS_URL
+              value: {{ .Values.cache.redisUrl }}
+            {{- if .Values.cache.eventTypeCache.enabled }}
+            - name: EVENT_TYPE_CACHE_ENABLED
+              value: "True"
+            {{- end }}
+            {{- if .Values.cache.eventTypeCache.enabled }}
+            - name: EVENT_KEY_CACHE_ENABLED
+              value: "True"
+            {{- end }}
+            {{- if .Values.clickhouse.enabled }}
+            - name: CLICKHOUSE_HOST
+              value: {{ .Values.clickhouse.host }}
+            - name: CLICKHOUSE_PORT
+              value: "{{ .Values.clickhouse.port }}"
+            - name: CLICKHOUSE_SECURE
+              value: "{{ .Values.clickhouse.secure }}"
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml .Values.clickhouse.passwordSecretKeyRef | nindent 18 }}
+            - name: CLICKHOUSE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  {{- toYaml .Values.clickhouse.usernameSecretKeyRef | nindent 18 }}
+            {{- end }}
+            - name: REPLICA1_POSTGRES_HOST
+              value: "{{ .Values.db.replica1Host }}"
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "{{ .Values.ingestKafka.bootstrapServers }}"
+            {{- if .Values.ingestKafka.rawMonitorTransactions.enabled }}
+            - name: KAFKA_PRODUCER_RAW_MONITOR_TRANSACTION_ENABLED
+              value: "{{ .Values.ingestKafka.rawMonitorTransactions.enabled }}"
+            {{- end }}
+            {{- if .Values.asyncJob.backFill.monitorTransaction.enabled }}
+            - name: BACK_FILL_JOB_CONFIG_MONITOR_TRANSACTION_ENABLED
+              value: "{{ .Values.asyncJob.backFill.monitorTransaction.enabled }}"
+            {{- end }}
+          {{- if .Values.deployment.containerPort }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.deployment.containerPort }}
+              protocol: TCP
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

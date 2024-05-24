@@ -1,0 +1,6 @@
+image:
+  tag: "v1.3"
+debug: "no"
+service:
+  type: LoadBalancer
+replicaCount: 1

@@ -3,16 +3,16 @@
 </p>
 
 
-## Kenobi -- Open Source Log-to-Metrics & Log-to-Funnels platform
+## Kenobi -- Most Convenient & Powerful logging platform for Data Pipelines.
 
-Kenobi helps you proactively monitor your application by defining correlations in your logs. Kenobi is designed to have a flexible rule-engine, easy-to-use interface and hassle-free deployment.
+Kenobi enables proactive tracking of asynchronous data pipelines. It is designed with a flexible rule-engine, easy-to-use interface and hassle-free deployment.
 
 ## Capabilities
 
 ### 1. Log to events:
-You can buffer a stream of logs to Kenobi and define filters and transformations on the platform using the GROK parser built into the platform.
+You can buffer a stream of unstructured/semi-structured logs to Kenobi and define filters and transformations on the platform using the GROK parser built into the platform. This means every stage of your pipeline can be effectively defined in Kenobi without requiring additional effort.
 
-### 2. Event Sequences: 
+### 2. Pipeline state transitions & sequences: 
 Once you have events flowing in, you can define different sequences by joining them. Here are some of the examples:
 1. **2-step sequence**  (defined as a monitor): Define a relation, A<sub>1</sub> &rarr; A<sub>2</sub> with A<sub>1</sub> being primary and A<sub>2</sub> being secondary event
     ![img.png](img.png)
@@ -22,7 +22,6 @@ Once you have events flowing in, you can define different sequences by joining t
 1. **n-step trees** (defined as an entity): Define a set of events that are not necessarily sequential but inter-related
    - [ ] todo -- add recording here
    ![img_1.png](img_1.png)
-   
 
 ### 3. Metrics:
 Define aggregations on your events and sequences. Some of the allowed metric types include:
@@ -43,11 +42,7 @@ Sounds useful?
 Play around in demo environment 👇🏽
 
 
-## Exploring Kenobi in a Sandbox
-For the purpose of this sandbox, we have created a sample payment application. In the sandbox, you will be able to see logs from one such application, and how we can transform it into funnels and charts.
-
-- **Cloud Sandbox:** Play around in the cloud sandbox [here](https://sandbox.drdroid.io/) (email ID required - we will not share your PII with any external party or send you unnecessary emails)
-- **Self-hosted Sandbox:** 
+## Exploring Kenobi
 To deploy Kenobi in your environment, run the following on a Linux machine with Docker (recommended 8GB memory):
 
  ```bash 

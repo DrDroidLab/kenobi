@@ -34,8 +34,7 @@ from event.engine.metric_engine import process_metric_expressions, get_metric_op
 from event.engine.query_engine import global_event_search_engine, \
     monitor_transaction_search_engine, \
     entity_instance_search_engine
-from event.entity_funnels.entity_funnels_crud import entity_funnels_create, entity_funnels_get, \
-    EntityFunnelCrudNotFoundException, entity_funnels_drop_off_get, entity_funnels_drop_off_download
+from event.entity_funnels.entity_funnels_crud import entity_funnels_create
 from event.models import is_transactional_key_type, Notification, Alert, is_filterable_key_type, \
     TRANSACTIONAL_KEY_TYPES, Entity, EntityEventKeyMapping, Trigger, MonitorTransactionStats, \
     MonitorTransactionEventMapping, EventKey, EntityTrigger, EntityTriggerNotificationConfigMapping

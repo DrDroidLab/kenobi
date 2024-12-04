@@ -207,9 +207,6 @@ services:
       - mynetwork
 
   webvault:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
     image: webvault:latest
     ports:
       - '80:80'

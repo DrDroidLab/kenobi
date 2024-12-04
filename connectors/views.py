@@ -22,7 +22,6 @@ from connectors.engine.event_stream_processing_filter_engine import filter_event
 from connectors.engine.event_stream_processing_parser_engine import parse_events, \
     generated_drd_events_from_parsed_event_string
 from connectors.utils import find_datetime_format_and_convert
-from event.clickhouse.models import RawEventStreamData, FilterParsedEventData
 from protos.event.api_pb2 import CreateConnectorRequest, CreateConnectorResponse, Message, RequestConnectorAPIRequest, \
     RequestConnectorAPIResponse, CreateTransformerMappingRequest, CreateTransformerMappingResponse, \
     GetConnectorKeysRequest, GetConnectorKeysResponse, SaveConnectorKeysResponse, SaveConnectorKeysRequest, \

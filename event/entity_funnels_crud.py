@@ -4,7 +4,6 @@ from google.protobuf.wrappers_pb2 import UInt64Value, StringValue
 
 from accounts.models import Account
 from event.cache import GLOBAL_PANEL_CACHE
-from event.clickhouse.models import MonitorTransactions, Events
 from event.models import Entity, EntityEventKeyMapping, EntityMonitorMapping
 from event.monitors_crud import create_monitors
 from event.workflows.funnel import Funnel
@@ -147,58 +146,6 @@ def entity_funnels_create(scope, entity_funnel_panel: PanelV1) -> (Entity, str):
     except Exception as e:
         return None, f'Incorrect Payload: Unable to save Entity Funnel in DB'
 
-
-def entity_funnels_get_clickhouse_events(account, dtr, entity_funnel_name, filter_key_name=None, filter_value=None):
-    panels = GLOBAL_PANEL_CACHE.get(account_id=account.id, name=entity_funnel_name)
-    panel_proto: PanelV1 = dict_to_proto(panels[0], PanelV1)
-    panel_data = panel_proto.data
-    if panel_data.type != PanelData.PanelDataType.FUNNEL or panel_data.funnel is None:
-        raise EntityFunnelCrudIncorrectPayloadException(f'Incorrect Panel Payload: Panel Data Type is not Funnel')
-    funnel = panel_data.funnel
-    event_key_name = funnel.event_key_name
-    funnel_event_type_ids = funnel.event_type_ids
-    if not filter_key_name or not filter_value:
-        filter_key_name = funnel.filter_key_name
-        filter_value = funnel.filter_value
-    funnel_event_type_ids_str = ','.join([str(e) for e in funnel_event_type_ids])
-    dtr_geq = dtr.to_tr_str()[0]
-    dtr_lt = dtr.to_tr_str()[1]
-    events_group_query = f"select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, " \
-                         f"groupArray(event_type_name) as event_type_name_group, " \
-                         f"groupArray(timestamp) as timestamp_group, e_id from " \
-                         f"(select id, event_type_id, event_type_name, timestamp, " \
-                         f"processed_kvs.{event_key_name} as e_id from events where " \
-                         f"event_type_id in ({funnel_event_type_ids_str}) and account_id = {account.id} and " \
-                         f"timestamp between '{dtr_geq}' and '{dtr_lt}' and processed_kvs.{event_key_name} in " \
-                         f"(select distinct processed_kvs.{event_key_name} from events where " \
-                         f"event_type_id = {funnel_event_type_ids[0]} and account_id = {account.id} and " \
-                         f"timestamp between '{dtr_geq}' and '{dtr_lt}') " \
-                         f"order by timestamp asc, created_at asc) group by e_id;"
-
-    if filter_key_name and filter_value:
-        events_group_query = f"select groupArray(id) as id, groupArray(event_type_id) as event_type_id_group, " \
-                             f"groupArray(event_type_name) as event_type_name_group, " \
-                             f"groupArray(timestamp) as timestamp_group, groupArray(e_filter_value) as filter_group, " \
-                             f"e_id from (select id, event_type_id, event_type_name, timestamp, " \
-                             f"processed_kvs.{event_key_name} as e_id, " \
-                             f"processed_kvs.{filter_key_name} as e_filter_value from events where " \
-                             f"event_type_id in ({funnel_event_type_ids_str}) and account_id = {account.id} and " \
-                             f"timestamp between '{dtr_geq}' and '{dtr_lt}' and processed_kvs.{event_key_name} in " \
-                             f"(select distinct processed_kvs.{event_key_name} from events where " \
-                             f"event_type_id = {funnel_event_type_ids[0]} and account_id = {account.id} and " \
-                             f"timestamp between '{dtr_geq}' and '{dtr_lt}') " \
-                             f"order by timestamp asc, created_at asc) group by e_id;"
-
-    qs = Events.objects.raw(events_group_query)
-    events_group_set = list(qs)
-
-    f = Funnel()
-
-    for grouped_event in events_group_set:
-        f.add_to_node_map(grouped_event, filter_key_name=filter_key_name, filter_value=filter_value)
-
-    ordered_funnel_data = f.get_ordered_funnel_data(funnel_event_type_ids)
-    return ordered_funnel_data
 
 
 def entity_funnels_get(scope: Account, dtr: DateTimeRange, entity_funnel_name: str, filter_key_name=None,

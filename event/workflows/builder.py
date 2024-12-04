@@ -7,8 +7,8 @@ from google.protobuf.wrappers_pb2 import BoolValue, UInt64Value, StringValue, Do
 from connectors.integrations.datadog import DatadogConnector
 from connectors.integrations.newrelic import NewRelicConnector
 
-from event.clickhouse.models import Events
 from event.engine.metric_engine import process_metric_expressions
+from event.models import Event
 from event.workflows.workflow_utils import get_metric_key_context, get_event_metric_expr_query, \
     get_transaction_metric_expr_query
 from protos.event.entity_pb2 import WorkflowView
@@ -133,7 +133,7 @@ class WorkflowBuilder:
             metric_expr_query = get_transaction_metric_expr_query(aggregation_type, aggregation_field, filters, self.account.id, self.dtr)
 
         if metric_expr_query:
-            qs = Events.objects.raw(metric_expr_query)
+            qs = Event.objects.raw(metric_expr_query)
             metric_value = list(qs)[0].id
             metric_value = round(metric_value, 2)
 
@@ -147,7 +147,7 @@ class WorkflowBuilder:
                     prev_metric_expr_query = get_transaction_metric_expr_query(aggregation_type, aggregation_field, filters,
                                                                           self.account.id, prev_dtr)
 
-                prev_qs = Events.objects.raw(prev_metric_expr_query)
+                prev_qs = Event.objects.raw(prev_metric_expr_query)
                 prev_metric_value = list(prev_qs)[0].id
                 if metric_value and not prev_metric_value:
                     delta = 100

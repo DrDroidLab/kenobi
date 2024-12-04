@@ -2,7 +2,6 @@ from django.db.models import QuerySet
 
 from event.engine.context import ContextResolver, get_context_resolver
 from event.models import Event, MonitorTransaction, EntityInstance
-from event.clickhouse.models import Events
 from protos.event.base_pb2 import Context
 from protos.event.literal_pb2 import IdLiteral
 from protos.event.query_base_pb2 import QueryRequest, OrderByExpression
@@ -50,11 +49,6 @@ class QueryEngine:
     def get_default_query(self, account, obj=None):
         return self._context_resolver.get_default_query(account, obj)
 
-
-global_event_search_clickhouse_engine = QueryEngine(
-    Events,
-    get_context_resolver(Context.EVENTS_CLICKHOUSE),
-)
 
 global_event_search_engine = QueryEngine(
     Event,

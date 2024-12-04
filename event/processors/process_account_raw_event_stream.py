@@ -5,7 +5,6 @@ from google.protobuf.wrappers_pb2 import UInt64Value
 
 from accounts.models import Account
 from connectors.engine.event_stream_processing_filter_engine import filter_event_stream
-from event.clickhouse.model_helper import ingest_account_filter_failed_raw_event_stream
 from event.processors.process_filtered_event_stream import process_account_filtered_event_stream
 from protos.kafka.event_stream_pb2 import StreamEvent, RawEventStreamPayloadKey, RawEventStreamPayloadValue
 from prototype.kafka.processor import Processor

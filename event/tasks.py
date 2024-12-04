@@ -13,9 +13,8 @@ from django.http import HttpResponse
 
 from accounts.models import Account
 from event.cache import GLOBAL_EXPORT_CONTEXT_CACHE
-from event.clickhouse.models import Events
-from event.engine.query_engine import global_event_search_clickhouse_engine, monitor_transaction_search_engine
-from event.models import Alert, MonitorTransactionEventMapping
+from event.engine.query_engine import global_event_search_engine, monitor_transaction_search_engine
+from event.models import Alert, Event, MonitorTransactionEventMapping
 from event.notification.notification_facade import notification_client
 from event.triggers.trigger_processor import process_trigger
 from event.triggers.entity_trigger_processor import process_trigger as process_entity_trigger
@@ -250,11 +249,11 @@ def event_export_task(account_id, export_id, user_email, request_message_json):
     dtr: DateTimeRange = to_dtr(request_message.meta.time_range)
     query_request: QueryRequest = request_message.query_request
 
-    qs = Events.objects.all()
+    qs = Event.objects.all()
     qs = filter_dtr(qs, dtr, 'timestamp')
     qs = qs.filter(account_id=account_id)
-    qs = global_event_search_clickhouse_engine.process_query(qs, query_request)
-    qs = global_event_search_clickhouse_engine.process_ordering(qs, query_request)
+    qs = global_event_search_engine.process_query(qs, query_request)
+    qs = global_event_search_engine.process_ordering(qs, query_request)
 
     event_protos = [e.proto for e in qs]
 
@@ -310,7 +309,7 @@ def monitor_transaction_export_task(account_id, export_id, user_email, request_m
         mt_events_map[mapping[0]].append(mapping)
 
     events_map = {}
-    events = Events.objects.filter(account_id=account.id, id__in=list(x[2] for x in mt_events_mapping)).values_list(
+    events = Event.objects.filter(account_id=account.id, id__in=list(x[2] for x in mt_events_mapping)).values_list(
         'id', 'event_type_name', 'timestamp', 'ingested_event', 'processed_kvs')
     for event in events:
         events_map[event[0]] = event

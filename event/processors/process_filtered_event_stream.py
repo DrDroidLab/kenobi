@@ -4,7 +4,6 @@ from django.conf import settings
 
 from accounts.models import Account
 from connectors.engine.event_stream_processing_parser_engine import parse_filtered_event_stream
-from event.clickhouse.model_helper import ingest_account_parser_failed_filtered_events
 from event.processors.process_parsed_event_stream import process_parsed_events
 from protos.kafka.event_stream_pb2 import FilteredEventStreamPayloadKey, FilteredEventStreamPayloadValue, StreamEvent
 from prototype.kafka.processor import Processor

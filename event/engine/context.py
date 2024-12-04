@@ -2,14 +2,13 @@ from abc import abstractmethod
 
 from google.protobuf.wrappers_pb2 import UInt64Value, BoolValue
 
-from event.clickhouse.models import Events
 from accounts.models import Account
 from event.base.aggregation_function import get_metric_aggregation_function_options
 from event.base.filter_token import FilterEngine
 from event.base.metric_token import MetricExpressionEvaluator
 from event.base.order_by_token import OrderByEngine
 from event.engine.model_columns import ColumnOptions, event_columns, monitor_transaction_columns, \
-    entity_instance_columns, events_clickhouse_columns
+    entity_instance_columns
 from event.models import Monitor, EventType, Entity
 from protos.event.base_pb2 import Context
 from protos.event.engine_options_pb2 import MetricOptions, QueryOptions, QueryOptionsV2
@@ -120,22 +119,6 @@ class EventContextResolver(ContextResolver):
         return QueryRequest(filter=Filter(op=Op.AND, filters=[]))
 
 
-class EventsClickhouseContextResolver(ContextResolver):
-    columns = events_clickhouse_columns
-    timestamp_field = 'timestamp'
-    parent_model = Events
-    parent_column_name = 'event_type_id'
-
-    def qs(self, account):
-        return Events.objects.filter(account_id=account.id)
-
-    def get_default_query(self, account, obj=None):
-        if type(account) is not Account:
-            raise ValueError(f'{account} needs to be Account')
-
-        return QueryRequest(filter=Filter(op=Op.AND, filters=[]))
-
-
 default_monitor_transaction_search_filter = Filter(
     lhs=Expression(column_identifier=ColumnIdentifier(name="type", type=LiteralType.ID)),
     op=Op.IN,
@@ -227,7 +210,6 @@ class EntityContextResolver(ContextResolver):
 
 _context_to_resolver = {
     Context.EVENT: EventContextResolver(),
-    Context.EVENTS_CLICKHOUSE: EventsClickhouseContextResolver(),
     Context.MONITOR_TRANSACTION: MonitorTransactionContextResolver(),
     Context.ENTITY_INSTANCE: EntityInstanceContextResolver(),
     Context.EVENT_TYPE: EventTypeContextResolver(),

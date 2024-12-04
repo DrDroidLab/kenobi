@@ -299,49 +299,6 @@ event_columns = {
     )
 }
 
-events_clickhouse_columns = {
-    'event_type_id': Column(
-        name='event_type_id',
-        display_name='Event Type',
-        type=LiteralType.ID,
-        id_options_cb=get_id_option_cb(
-            lambda account: account.eventtype_set
-        ),
-        is_groupable=True,
-        is_orderable=False,
-        is_filterable=True,
-        aggregation_functions=[AggregationFunction.COUNT],
-        id_label_resolver_cb=get_resolve_column_id_cb(get_event_type_name_from_id),
-    ),
-    'timestamp_in_seconds': AnnotatedColumn(
-        name='timestamp_in_seconds',
-        annotation_relation=TruncSecond('timestamp'),
-        type=LiteralType.TIMESTAMP,
-        display_name='Timestamp (Seconds)',
-        is_groupable=False,
-        is_orderable=True,
-        is_filterable=True,
-        aggregation_functions=[AggregationFunction.MIN, AggregationFunction.MAX],
-    ),
-    'timestamp': Column(
-        name='timestamp',
-        type=LiteralType.TIMESTAMP,
-        display_name='Timestamp',
-        is_groupable=False,
-        is_orderable=True,
-        is_filterable=False,
-        aggregation_functions=[AggregationFunction.MIN, AggregationFunction.MAX],
-    ),
-    'event_attribute': AttributeColumn(
-        name='event_attribute',
-        annotation_relation=F('processed_kvs'),
-        display_name='Event Attribute',
-        attribute_options_cb=get_event_attribute_options,
-        attribute_field='processed_kvs',
-        is_filterable=True
-    )
-}
-
 monitor_transaction_columns = {
     'monitor_id': Column(
         name='monitor_id',

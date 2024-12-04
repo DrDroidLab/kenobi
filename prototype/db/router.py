@@ -7,16 +7,10 @@ from prototype.db.db import DbSelect, get_db_select
 class DbRouter:
     def __init__(self):
         self._default_db_key: str = 'default'
-        self._clickhouse_db_key: str = 'clickhouse'
         self._replica_db_keys: List[str] = ['replica1']
         self._db_set = {'default', *self._replica_db_keys}
 
     def db_for_read(self, model, **hints):
-
-        if model.__name__ in ['Events', 'MonitorTransactions', 'RawEventStreamData', 'FilterFailedRawEventStreamData',
-                              'ParserFailedRawEventStreamData', 'DrdEventDefinitionFailedParsedEventData',
-                              'FilterParsedEventData']:
-            return self._clickhouse_db_key
 
         db_select: DbSelect = get_db_select()
         if db_select.use_default_db:
@@ -33,10 +27,6 @@ class DbRouter:
         """
         Writes always go to primary.
         """
-        if model.__name__ in ['Events', 'MonitorTransactions', 'RawEventStreamData', 'FilterFailedRawEventStreamData',
-                              'ParserFailedRawEventStreamData', 'DrdEventDefinitionFailedParsedEventData',
-                              'FilterParsedEventData']:
-            return self._clickhouse_db_key
 
         return self._default_db_key
 

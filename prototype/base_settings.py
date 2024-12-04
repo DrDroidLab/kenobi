@@ -123,20 +123,6 @@ DATABASES = {
         'PASSWORD': env.str('POSTGRES_PASSWORD', default='pass'),
         'HOST': env.str('REPLICA1_POSTGRES_HOST', default=_default_postgres_host),
         'PORT': env.str('POSTGRES_PORT', default='5432'),
-    },
-    'clickhouse': {
-        'ENGINE': 'clickhouse_backend.backend',
-        'NAME': 'default',
-        'HOST': env.str("CLICKHOUSE_HOST", default='localhost'),
-        'PORT': env.str("CLICKHOUSE_PORT", default='9000'),
-        'USER': env.str("CLICKHOUSE_USERNAME", default='default'),
-        'PASSWORD': env.str("CLICKHOUSE_PASSWORD", default=''),
-        'OPTIONS': {
-            'secure': env.bool("CLICKHOUSE_SECURE", default=True),
-            'settings': {
-                'allow_experimental_object_type': 1
-            }
-        }
     }
 }
 
@@ -404,51 +390,6 @@ KAFKA_CONSUMER_CONFIG = {
             'auto.offset.reset': 'earliest'
         }
     },
-    'processed_events_clickhouse': {
-        'enabled': env.bool("KAFKA_CONSUMER_PROCESSED_EVENTS_CLICKHOUSE_ENABLED", default=True),
-        'topic': env.str("KAFKA_PROCESSED_EVENT_TOPIC", default='processed-events'),
-        'processor': 'event.processors.processed_events_processor.ProcessedEventClickhouseIngestProcessor',
-        'config': {
-            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
-            'auto.offset.reset': 'earliest'
-        }
-    },
-    'processed_monitor_transactions_clickhouse': {
-        'enabled': env.bool("KAFKA_CONSUMER_PROCESSED_MONITOR_TRANSACTIONS_CLICKHOUSE_ENABLED", default=True),
-        'topic': env.str("KAFKA_PROCESSED_MONITOR_TRANSACTIONS_TOPIC", default='processed-monitor-transactions'),
-        'processor': 'event.processors.processed_monitor_transaction_processor.ProcessedMonitorTransactionClickhouseIngestProcessor',
-        'config': {
-            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
-            'auto.offset.reset': 'earliest'
-        }
-    },
-    'raw_event_stream': {
-        'enabled': env.bool("KAFKA_CONSUMER_RAW_EVENT_STREAM_ENABLED", default=True),
-        'topic': env.str("KAFKA_RAW_EVENT_STREAM_TOPIC", default='raw-event-stream'),
-        'processor': 'event.processors.process_raw_event_stream.RawEventStreamIngestProcessor',
-        'config': {
-            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
-            'auto.offset.reset': 'earliest'
-        }
-    },
-    'account_raw_event_stream': {
-        'enabled': env.bool("KAFKA_CONSUMER_ACCOUNT_RAW_EVENT_STREAM_ENABLED", default=True),
-        'topic': env.str("KAFKA_ACCOUNT_RAW_EVENT_STREAM_TOPIC", default='account-raw-event-stream'),
-        'processor': 'event.processors.process_account_raw_event_stream.AccountRawEventStreamProcessor',
-        'config': {
-            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
-            'auto.offset.reset': 'earliest'
-        }
-    },
-    'filtered_event_stream': {
-        'enabled': env.bool("KAFKA_CONSUMER_FILTERED_EVENT_STREAM_ENABLED", default=True),
-        'topic': env.str("KAFKA_FILTERED_EVENT_STREAM_TOPIC", default='filtered-event-stream'),
-        'processor': 'event.processors.process_filtered_event_stream.FilteredEventStreamProcessor',
-        'config': {
-            'bootstrap.servers': env.str("KAFKA_BOOTSTRAP_SERVERS", default='localhost:9092'),
-            'auto.offset.reset': 'earliest'
-        }
-    }
 }
 
 
@@ -521,10 +462,3 @@ GLOBAL_EXPORT_CONTEXT_CACHE = {
 }
 
 ACCOUNT_DAILY_EVENT_QUOTA = env.int("ACCOUNT_DAILY_EVENT_QUOTA", default=10000)
-
-CLICKHOUSE_CLIENT_CONFIG = {
-    'host': env.str("CLICKHOUSE_HOST", default='localhost'),
-    'port': env.int("CLICKHOUSE_PORT", default=8443),
-    'username': env.str("CLICKHOUSE_USERNAME", default='default'),
-    'password': env.str("CLICKHOUSE_PASSWORD", default=''),
-}

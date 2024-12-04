@@ -10,8 +10,6 @@ from django.db.models.fields.json import KeyTextTransform
 from django.db.models.functions import Cast
 from google.protobuf.wrappers_pb2 import BoolValue, UInt64Value
 
-from event.clickhouse.models import Events
-
 from event.base.filter_token import FilterToken, FilterTokenizer, FilterTokenValidator, \
     FilterTokenEvaluator, FilterTokenAnnotator
 from event.base.literal import obj_to_literal
@@ -309,121 +307,13 @@ class MetricTokenProcessor:
             metadata=metric_data_metadata,
             labeled_data=list(label_group_data_map.values())
         )
-
-
-class EventsClickhouseMetricTokenProcessor(MetricTokenProcessor):
-
-    def process(self, qs: QuerySet, metric_token: MetricToken, dtr: DateTimeRange):
-        is_timeseries = metric_token.is_timeseries
-        ts_field = metric_token.timestamp_field
-        resolution = metric_token.resolution
-
-        # Filter timerange on the base qs
-        qs: QuerySet = filter_dtr(qs, dtr, ts_field)
-
-        annotations = self._metric_token_annotator.annotations(metric_token)
-        qs = qs.annotate(**annotations)
-        if metric_token.filter:
-            # Apply filter on the base qs
-            qs = self._filter_token_evaluator.process(qs, metric_token.filter)
-        if is_timeseries:
-            # Annotate each record with a timestamp bucket based on the resolution and the start timestamp
-            qs = qs.annotate(timestamp_bucket=RawSQL(
-                '{start_ts} + (floor((toUInt64(toDateTime("{table}"."{ts_field}")) - {start_ts}) /%s) * %s)'.format(
-                    table=qs.model._meta.db_table,
-                    ts_field=ts_field,
-                    start_ts=int(dtr.time_geq.timestamp())
-                )
-                , [resolution, resolution])
-            )
-
-        # All group by labels from columns
-        group_by: list = list()
-        # All metric label metadata expressions
-        metric_label_metadata = OrderedDict()
-        for g in metric_token.group_by:
-            if isinstance(g, Groupable):
-                k = g.group_key()
-                group_by.append(k)
-                metric_label_metadata[k] = g
-
-        if is_timeseries:
-            group_by.insert(0, self._timestamp_bucket)
-
-        selector_annotations = self._selector_annotations(metric_token.selectors)
-        selector_annotation_aliases = list(selector_annotations.keys())
-
-        if group_by:
-            qs = qs.values(*(list(group_by)))
-            qs = qs.annotate(**selector_annotations)
-            if is_timeseries:
-                qs = qs.order_by(self._timestamp_bucket)
-        else:
-            # In case there is no group by and no timeseries, we need to resolve the selections here only
-            qs = qs.aggregate(**selector_annotations)
-
-        resolved_qs = []
-        if isinstance(qs, QuerySet):
-            resolved_qs = list(qs)
-        elif isinstance(qs, Dict):
-            resolved_qs = [qs]
-
-        label_key_ordering = metric_label_metadata.keys()
-
-        label_group_data_map = {}
-        for record in resolved_qs:
-            label_group = get_label_group(label_key_ordering, record)
-            if label_group not in label_group_data_map:
-                label_group_data_map[label_group] = LabeledData(
-                    label_group=label_group,
-                    labels=[
-                        metric_label_metadata[label_key].group_label(record[label_key])
-                        for label_key in label_key_ordering
-                    ],
-                    alias_data_map={}
-                )
-            data = label_group_data_map[label_group]
-            for metric_alias in selector_annotation_aliases:
-                metric = obj_to_literal(record[metric_alias])
-                if is_timeseries:
-                    data.alias_data_map[metric_alias].timeseries_data.append(
-                        TsDataPoint(
-                            timestamp=int(record[self._timestamp_bucket]),
-                            value=metric
-                        )
-                    )
-                else:
-                    data.alias_data_map[metric_alias].value.CopyFrom(metric)
-
-        metric_data_metadata = MetricDataMetadata(
-            labels_metadata=[
-                metric_label_metadata[label_key].group_label_metadata()
-                for label_key in label_key_ordering
-            ],
-            is_timeseries=BoolValue(value=is_timeseries),
-            resolution=UInt64Value(value=resolution),
-            time_range=dtr.to_tr(),
-            metric_alias_selector_map={
-                selector.metric_alias: selector.metric_selector
-                for selector in metric_token.selectors
-            }
-        )
-
-        return MetricData(
-            metadata=metric_data_metadata,
-            labeled_data=list(label_group_data_map.values())
-        )
-
+    
 
 class MetricExpressionEvaluator:
     def __init__(self, parent_model, columns, timestamp_field):
         self._metric_tokenizer = MetricTokenizer(columns, timestamp_field)
         self._metric_token_validator = MetricTokenValidator()
-
-        if parent_model == Events:
-            self._metric_token_processor = EventsClickhouseMetricTokenProcessor()
-        else:
-            self._metric_token_processor = MetricTokenProcessor()
+        self._metric_token_processor = MetricTokenProcessor()
 
     def process(self, qs, metric_expression: MetricExpression, dtr: DateTimeRange):
         metric_token: MetricToken = self._metric_tokenizer.tokenize(metric_expression)

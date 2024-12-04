@@ -9,8 +9,6 @@ from google.protobuf import json_format
 from pygrok import Grok
 
 from connectors.utils import find_datetime_format_and_convert
-from event.clickhouse.model_helper import ingest_account_drd_event_definition_failed_parsed_events, get_data_type, \
-    ingest_account_filter_parsed_events
 from protos.event.base_pb2 import Event as EventProto
 from protos.event.stream_processing_pb2 import EventProcessingParser, GrokEventProcessingParser
 from protos.kafka.event_stream_pb2 import StreamEvent

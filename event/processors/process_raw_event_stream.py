@@ -4,7 +4,6 @@ from django.conf import settings
 from google.protobuf.wrappers_pb2 import UInt64Value
 
 from accounts.models import Account
-from event.clickhouse.model_helper import ingest_account_raw_event_stream
 from event.processors.process_account_raw_event_stream import process_account_raw_event_stream
 from protos.kafka.event_stream_pb2 import StreamEvent, RawEventStreamPayloadKey, RawEventStreamPayloadValue
 from prototype.kafka.processor import Processor

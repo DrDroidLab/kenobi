@@ -76,20 +76,4 @@ urlpatterns = [
     path('api/entities/triggers/inactivate', views.entity_triggers_inactivate),
 
     path('api/entity/workflow', views.entity_workflow_get),
-    path('api/entity/build_workflow', views.workflow_builder),
-    path('api/entity/node_metrics_timeseries', views.workflow_node_metrics_timeseries),
-
-    path('api/funnel/v2', views.funnel_get_v2),
-    path('api/funnel/drop_off_distribution/v2', views.funnel_drop_off_distribution_get_v2),
-    path('api/funnel/drop_off', views.funnel_drop_off_get),
-
-    path('api/funnel/v3', views.funnel_get_v3),
-
-    # Funnel Revamp
-    path('api/entity_funnels/view', views.funnel_get_v2),
-    path('api/entity_funnels/create', views.entity_funnel_create),
-    path('api/entity_funnels/get', views.entity_funnel_get),
-    path('api/entity_funnels/update', views.entity_funnel_update),
-    path('api/entity_funnels/drop_off_distribution', views.entity_funnel_drop_off_distribution_get),
-    path('api/entity_funnels/drop_off_distribution/download', views.entity_funnel_drop_off_distribution_download),
 ]

@@ -7,4 +7,4 @@ docker build -t webvault:latest .
 
 # Run docker compose
 cd ..
-docker-compose --file=prototype.docker-compose.yml up -d 
+docker compose --file=prototype.docker-compose.yml up -d 

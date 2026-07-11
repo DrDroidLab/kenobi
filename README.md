@@ -7,6 +7,8 @@
 
 Kenobi helps you proactively monitor your application by defining correlations in your logs. Kenobi is designed to have a flexible rule-engine, easy-to-use interface and hassle-free deployment. It works well for both cloud and on-premise deployments, giving you the flexibility to run it wherever your infrastructure lives.
 
+Kenobi is open-source and released under the Apache-2.0 license.
+
 ## Capabilities
 
 ### 1. Log to events:

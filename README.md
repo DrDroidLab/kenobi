@@ -95,5 +95,8 @@ Run the following command from the root directory
 ### Cloud Hosting
 Doctor Droid supports a robust cloud platform for Kenobi. If you'd like to use the cloud platform instead of managing the platform in-house, sign up on our [website](https://app.drdroid.io/signup) or [book a demo](https://calendly.com/siddarthjain/catchup-call-clone).
 
+### Contributing
+We welcome community contributions — please feel free to open a pull request to help improve Kenobi.
+
 ### License
 This repo is available under the [MIT license](https://github.com/DrDroidLab/kenobi/blob/main/LICENSE).
